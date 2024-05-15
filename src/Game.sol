@@ -31,7 +31,13 @@ contract Game {
     constructor() {
     }
 
+    function requestRandomWord() public {
 
+    }
+
+    function decideRandomEvent(uint256 randomWord) public {
+
+    }
 
     /** Getter Functions */
 }
