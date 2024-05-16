@@ -16,6 +16,11 @@ contract GameFactory is VRFConsumerBaseV2 {
     /** Errors */
 
     /** Type Declarations */
+    struct GameInfo {
+        address gameAddress;
+        address[] participants;
+    // Add any other relevant data
+    }
 
     /** State Variables */
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
@@ -26,6 +31,8 @@ contract GameFactory is VRFConsumerBaseV2 {
     uint32 private numWords = 1;
 
     mapping(uint256 => address) private requestIdToGameAddress;
+    mapping(uint256 => GameInfo) public games;
+    uint256 public gameCount;
 
     /** Events */
     event GameCreated(address gameInstance);
@@ -49,10 +56,21 @@ contract GameFactory is VRFConsumerBaseV2 {
 
     function createGame() public {
         Game game = new Game(); // CREATE? CREATE2?
+
+        GameInfo memory gameInfo = GameInfo({
+            gameAddress: address(game),
+            participants: new address[](0)
+        });
+
+        games[gameCount] = gameInfo;
+        gameCount++;
+
         emit GameCreated(address(game));
     }
 
-    function enterGame() public {
+    function enterGame(uint256 gameIndex) public {
+        require(gameIndex < gameCount, "Invalid game index");
+        games[gameIndex].participants.push(msg.sender);
         emit GameJoined(msg.sender);
     }
 
