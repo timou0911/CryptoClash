@@ -31,12 +31,13 @@ contract Game {
     constructor() {
     }
 
-    function requestRandomWord() public {
+    function requestRandomWord() public returns (bool received) {
 
+        
     }
 
-    function decideRandomEvent(uint256 randomWord) public {
-
+    function decideRandomEvent(uint256 randomWord) public returns (bool received) {
+        return received;
     }
 
     /** Getter Functions */
