@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
 
 interface IUpperControl {
     function requestRandomWord() external returns (uint256);
@@ -17,10 +17,10 @@ interface IUpperControl {
 
 // TODO: Develop a way to save upper control's address before consturctor called
 // TODO: Change array players from dynamic to static
+// TODO: Who can call function triggerRandomEvent
 contract Game {
     /** Errors */
     error WrongFeeAmount();
-    error ParticipantFull();
     error ParicipantDuplicated(address player);
     error GameNotInWaitingState();
     error GameNotInProgressState();
@@ -31,12 +31,12 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private immutable i_upperControl;
+    IUpperControl private i_upperControl;
+    address private upperControlAddr;
     address[] private s_players;
 
     /** Events */
     event GameJoined(address player);
-    event GameStart();
 
     /** Modifiers */
     modifier onlyUpperControl() {
@@ -69,18 +69,15 @@ contract Game {
     }
 
     /**
-     * @notice Join an existing round
-     * @dev When particpant number is full, than create a new game instance
+     * @notice Pay fee and join an existing round
+     * @dev When particpant number is full, change state to InProgress
      */
     function enterGame() public payable noDuplicatedPlayer() {
+        if (getState() != 1) {
+            revert GameNotInWaitingState();
+        }
         if (msg.value != PARTICIPANT_FEE) {
             revert WrongFeeAmount();
-        }
-        if (s_players.length >= PARTICIPANT_NUMBER) {
-            revert ParticipantFull();
-        }
-        if (getState() != 0) {
-            revert GameNotInWaitingState();
         }
 
         s_players.push(msg.sender);
@@ -89,19 +86,16 @@ contract Game {
 
         if (s_players.length == PARTICIPANT_NUMBER) {
             i_upperControl.setGameState(2);
-            emit GameStart();
         }
     }
 
-    function decideRandomEvent(
-        uint256 randomWord
-    ) public onlyUpperControl() returns (bool received) {
-        // take mod of randomWord to decide event
-        return received;
+    function triggerRandomEvent() public onlyGameStateInProgress() {
+        i_upperControl.requestRandomWord();
     }
 
-    function requestRandomWord() onlyGameStateInProgress() private {
-        i_upperControl.requestRandomWord();
+    function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
+        // take mod of randomWord to decide event
+        return received;
     }
 
     /** Getter Functions */
