@@ -16,8 +16,8 @@ interface IUpperControl {
  */
 
 // TODO: Develop a way to save upper control's address before consturctor called
-// TODO: Change array players from dynamic to static
-// TODO: Who can call function triggerRandomEvent
+// TODO: Using syatic array or dynamic array?
+// TODO: Who can call function triggerRandomEvent (Automation?)
 contract Game {
     /** Errors */
     error WrongFeeAmount();
