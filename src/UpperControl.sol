@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
 
 import "./Game.sol";
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
@@ -24,12 +24,13 @@ contract UpperControl is VRFConsumerBaseV2 {
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint16 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
+
     VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
     bytes32 private immutable i_gasLane;
     uint64 private immutable i_subscriptionId;
     uint32 private immutable i_callbackGasLimit;
-    uint32 private s_numWords = 1;
 
+    uint32 private s_numWords = 1;
     mapping(uint256 => address) private s_requestIdToGameAddress;
     mapping(address => GameState) public s_gamesState;
 
@@ -48,10 +49,10 @@ contract UpperControl is VRFConsumerBaseV2 {
         _;
     }
 
-    constructor(address vrfCoordinator,
+    constructor(uint64 subscriptionId,
         bytes32 gasLane,
-        uint64 subscriptionId,
-        uint32 callbackGasLimit
+        uint32 callbackGasLimit,
+        address vrfCoordinator
     ) VRFConsumerBaseV2(vrfCoordinator) {
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
         i_gasLane = gasLane;
