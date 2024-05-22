@@ -31,15 +31,15 @@ contract UpperControl is VRFConsumerBaseV2 {
     uint32 private immutable i_callbackGasLimit;
 
     uint32 private s_numWords = 1;
-    mapping(uint256 => address) private s_requestIdToGameAddress;
+    mapping(uint256 => address) public s_requestIdToGameAddress;
     mapping(address => GameState) public s_gamesState;
 
     /** Events */
-    event GameCreated(address gameAddress);
-    event RequestSent(uint256 requestId, uint32 s_numWords);
-    event RequestFulfilled(uint256 requestId, uint256[] randomWords);
-    event StateChange(GameState prev, GameState curr);
-    event GameFinished(address gameAddr);
+    event GameCreated(address indexed gameAddress);
+    event RequestSent(uint256 indexed requestId, uint32 indexed s_numWords);
+    event RequestFulfilled(uint256 indexed requestId, uint256[] indexed randomWords);
+    event StateChange(GameState indexed prev, GameState indexed curr);
+    event GameFinished(address indexed gameAddr);
 
     /** Modifiers */
     modifier onlyGameContract() {
@@ -64,7 +64,7 @@ contract UpperControl is VRFConsumerBaseV2 {
      * @notice Create a round of game and become the first participant
      * @dev Separate round creation and instance creation. Set game state to waiting participants
      */
-    function createGame() public payable {
+    function createGame() public payable returns (address) {
         require(msg.value == PARTICIPANT_FEE, "Incorrect fee amount");
 
         Game game = new Game{value: PARTICIPANT_FEE}(msg.sender);
@@ -73,6 +73,8 @@ contract UpperControl is VRFConsumerBaseV2 {
         s_gamesState[address(game)] = GameState.WaitingForPlayers;
 
         emit GameCreated(address(game));
+
+        return address(game);
     }
 
     /**
@@ -116,7 +118,7 @@ contract UpperControl is VRFConsumerBaseV2 {
         require(gameAddress != address(0), "Invalid request ID");
         
         bool received = Game(gameAddress).decideRandomEvent(_randomWords[0]);
-        require(received, "random words sent failed.");
+        require(received, "random words sent failed");
 
         emit RequestFulfilled(_requestId, _randomWords);
     }
