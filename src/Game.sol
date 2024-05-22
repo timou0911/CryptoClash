@@ -16,7 +16,7 @@ interface IUpperControl {
  */
 
 // TODO: Develop a way to save upper control's address before consturctor called
-// TODO: Who can call function triggerRandomEvent (Automation?)
+// TODO: Change array players from dynamic to static
 contract Game {
     /** Errors */
     error WrongFeeAmount();
@@ -30,10 +30,8 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private i_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
-    address private upperControlAddr;
-    address[PARTICIPANT_NUMBER] public s_players;
-    uint8 private playerNum = 0;
+    IUpperControl private immutable i_upperControl;
+    address[] private s_players;
 
     /** Events */
     event GameJoined(address player);
@@ -97,7 +95,8 @@ contract Game {
 
     function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
         // take mod of randomWord to decide event
-        received = true;
+        bidRound = randomWord%15 + 16; 
+        return received;
     }
 
     /** Getter Functions */
