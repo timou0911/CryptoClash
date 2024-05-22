@@ -16,7 +16,6 @@ interface IUpperControl {
  */
 
 // TODO: Develop a way to save upper control's address before consturctor called
-// TODO: Using syatic array or dynamic array?
 // TODO: Who can call function triggerRandomEvent (Automation?)
 contract Game {
     /** Errors */
@@ -31,9 +30,10 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private i_upperControl;
+    IUpperControl private i_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
     address private upperControlAddr;
-    address[] private s_players;
+    address[PARTICIPANT_NUMBER] public s_players;
+    uint8 private playerNum = 0;
 
     /** Events */
     event GameJoined(address player);
@@ -54,7 +54,7 @@ contract Game {
     }
 
     modifier noDuplicatedPlayer() {
-        for (uint8 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+        for (uint8 i = 0; i < playerNum; ++i) {
             if (s_players[i] == msg.sender) {
                 revert ParicipantDuplicated(msg.sender);
             }
@@ -65,7 +65,8 @@ contract Game {
     constructor(address gameCreator) payable onlyUpperControl() {
         i_upperControl = IUpperControl(msg.sender);
 
-        s_players.push(gameCreator);
+        s_players[playerNum] = gameCreator;
+        ++playerNum;
     }
 
     /**
@@ -80,11 +81,12 @@ contract Game {
             revert WrongFeeAmount();
         }
 
-        s_players.push(msg.sender);
+        s_players[playerNum] = msg.sender;
+        playerNum++;
 
         emit GameJoined(msg.sender);
 
-        if (s_players.length == PARTICIPANT_NUMBER) {
+        if (playerNum == PARTICIPANT_NUMBER) {
             i_upperControl.setGameState(2);
         }
     }
@@ -95,11 +97,15 @@ contract Game {
 
     function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
         // take mod of randomWord to decide event
-        return received;
+        received = true;
     }
 
     /** Getter Functions */
     function getState() public returns (uint8) {
         return uint8(i_upperControl.getGameState());
+    }
+
+    function getParticipant(uint256 index) public view returns (address) {
+        return s_players[index];
     }
 }
