@@ -94,7 +94,7 @@ contract Game {
     }
 
     modifier noDuplicatedPlayer() {
-        for (uint8 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+        for (uint8 i = 0; i < playerNum; ++i) {
             if (s_players[i] == msg.sender) {
                 revert ParicipantDuplicated(msg.sender);
             }
@@ -110,7 +110,8 @@ contract Game {
     constructor(address gameCreator) payable onlyUpperControl() {
         i_upperControl = IUpperControl(msg.sender);
 
-        s_players.push(gameCreator);
+        s_players[playerNum] = gameCreator;
+        ++playerNum;
     }
 
     /**
@@ -128,11 +129,12 @@ contract Game {
             revert GameNotInWaitingState();
         }
 
-        s_players.push(msg.sender);
+        s_players[playerNum] = msg.sender;
+        playerNum++;
 
         emit GameJoined(msg.sender);
 
-        if (s_players.length == PARTICIPANT_NUMBER) {
+        if (playerNum == PARTICIPANT_NUMBER) {
             i_upperControl.setGameState(2);
             emit GameStart();
         }
@@ -212,5 +214,9 @@ contract Game {
     /** Getter Functions */
     function getState() public returns (uint8) {
         return uint8(i_upperControl.getGameState());
+    }
+
+    function getParticipant(uint256 index) public view returns (address) {
+        return s_players[index];
     }
 }
