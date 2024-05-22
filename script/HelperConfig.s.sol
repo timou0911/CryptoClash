@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.19;
 
-import {Script} from "forge-std/Script.sol";
-import {LinkToken} from "../test/mocks/LinkToken.sol";
-import {VRFCoordinatorV2Mock} from "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import { Script } from "forge-std/Script.sol";
+import { LinkToken } from "../test/mocks/LinkToken.sol";
+import { VRFCoordinatorV2Mock } from "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 
 contract HelperConfig is Script {
     NetworkConfig public activeNetworkConfig;
