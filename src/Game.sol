@@ -16,7 +16,6 @@ interface IUpperControl {
  */
 
 // TODO: Develop a way to save upper control's address before consturctor called
-// TODO: Change array players from dynamic to static
 contract Game {
     /** Errors */
     error WrongFeeAmount();
@@ -25,10 +24,10 @@ contract Game {
     error GameNotInWaitingState();
     error GameNotInProgressState();
     error CallerNotUpperControl(address caller, address upperControl);
-
     error AI_responseFail();
+
     /** Type Declarations */
-    struct AI_response{
+    struct AI_response {
         //useful information that will response by AI (this is what claude AI told me)
         bool success;
         string[] news;
@@ -37,18 +36,19 @@ contract Game {
         string confidence_score;
     }
 
-    struct Player_response{
+    struct Player_response {
         bool playerDecided;
         uint8 playerDecision;
     }
 
-    struct Player_statement{
+    struct Player_statement {
         string currencyName;
         uint64 money;
-        uint64[] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
+        uint64[5] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
         string topic;
     }
-    struct Event_holder{
+
+    struct Event_holder {
         string[] newsOfPlayerDecision;
         string[] newsForEachPlayer;
         string[] msgForEachPlayer;
@@ -58,12 +58,12 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private i_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
+    IUpperControl private s_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
     address[PARTICIPANT_NUMBER] public s_players;
     uint8 private playerNum = 0;
 
     uint8 private constant MAX_ROUND = 30;
-        //requestion word for requesting ai at first round to get first event and decide which topic player work on.
+    //requestion word for requesting ai at first round to get first event and decide which topic player work on.
     string private constant ROUNDSTART_REQUESTION ="we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
     AI_response private ai_response;
     Player_response[] private player_response;
@@ -72,6 +72,7 @@ contract Game {
     uint8 gameRound = 0;
     uint256 bidRound = 0;
     uint8 specialEventFrequency = 5;
+
     /** Events */
     event GameJoined(address player);
     event GameStart();
@@ -79,10 +80,11 @@ contract Game {
     event SendNews(string[] news);//each player hold a index
     event SendEmail(string[] events);
     event SendMsg(string[] suggention);
+    
     /** Modifiers */
     modifier onlyUpperControl() {
-        if (msg.sender != address(i_upperControl)) {
-            revert CallerNotUpperControl(msg.sender, address(i_upperControl));
+        if (msg.sender != address(s_upperControl)) {
+            revert CallerNotUpperControl(msg.sender, address(s_upperControl));
         }
         _;
     }
@@ -109,7 +111,7 @@ contract Game {
         _;
     }
     constructor(address gameCreator) payable onlyUpperControl() {
-        i_upperControl = IUpperControl(msg.sender);
+        s_upperControl = IUpperControl(msg.sender);
 
         s_players[playerNum] = gameCreator;
         ++playerNum;
@@ -126,14 +128,17 @@ contract Game {
         if (playerNum >= PARTICIPANT_NUMBER) {
             revert ParticipantFull();
         }
+        if (getState() != 1) {
+            revert GameNotInWaitingState();
+        }
 
         s_players[playerNum] = msg.sender;
-        playerNum++;
+        ++playerNum;
 
         emit GameJoined(msg.sender);
 
         if (playerNum == PARTICIPANT_NUMBER) {
-            i_upperControl.setGameState(2);
+            s_upperControl.setGameState(2);
             emit GameStart();
         }
     }
@@ -141,12 +146,13 @@ contract Game {
     function gameStarting() onlyGameStateInProgress() private {
         if(gameRound == 0){
             requestAI();
-            gameRound++;
+            ++gameRound;
         }
         gameFlow();
     }
+
     function gameFlow() onlyGameStateInProgress() onlyResponseSuccess() private {
-        for(gameRound; gameRound <= MAX_ROUND ; gameRound++){
+        for(gameRound; gameRound <= MAX_ROUND; ++gameRound){
             setEventHolder();
             sendNews();
             sendEmail();
@@ -155,29 +161,34 @@ contract Game {
             requestAI();
         }
     }
+
     function sendNews() onlyGameStateInProgress() private {
         emit SendEmail(event_holder.newsForEachPlayer);
     }
+
     function sendMsg() onlyGameStateInProgress() private {
         emit SendMsg(event_holder.msgForEachPlayer);
     }
+
     function sendEmail() onlyGameStateInProgress() private {
         emit SendEmail(event_holder.emailForEachPlayer);
     }
+
     function setEventHolder() onlyGameStateInProgress() private {
-        for(uint i =0 ; i < PARTICIPANT_NUMBER ; i++){
-            for(uint j = 0 ;j < PARTICIPANT_NUMBER ; j++)
+        for(uint256 i = 0; i < PARTICIPANT_NUMBER; ++i){
+            for(uint256 j = 0; j < PARTICIPANT_NUMBER; ++j)
             event_holder.newsForEachPlayer[i] = string.concat(event_holder.newsForEachPlayer[i],event_holder.newsOfPlayerDecision[j]);
         }
         event_holder.newsForEachPlayer = ai_response.news;
         event_holder.msgForEachPlayer = ai_response.messenge;
         event_holder.emailForEachPlayer = ai_response.option;
     }
+
     function getPlayerResponse() onlyGameStateInProgress() private{
         //get player response from front-end;
         // player_response  = array of player response
-        for(uint8 i =0;i < PARTICIPANT_NUMBER; ++i){
-            if(player_response[i].playerDecided==false){
+        for(uint8 i = 0; i < PARTICIPANT_NUMBER; ++i){
+            if(player_response[i].playerDecided == false){
                 player_response[i].playerDecision = 1;
             }
         }
@@ -189,7 +200,7 @@ contract Game {
             // send request with requestWord the response with be : 
             // event/invite for each player , event shows on news , invite shows on Msg
             AI_response storage ai_response ;//
-        }else{
+        } else {
             
         }
         //calling js script to send request to AI, and request that AI should provide options seperate by / ; 
@@ -200,19 +211,19 @@ contract Game {
    
     function decideRandomEvent(
         uint256 randomWord
-    ) public onlyUpperControl() returns (bool received) {
+    ) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
         // take mod of randomWord to decide event
         bidRound = randomWord%15 + 16; 
         return received;
     }
 
     function requestRandomWord() onlyGameStateInProgress() private {
-        i_upperControl.requestRandomWord();
+        s_upperControl.requestRandomWord();
     }
 
     /** Getter Functions */
     function getState() public returns (uint8) {
-        return uint8(i_upperControl.getGameState());
+        return uint8(s_upperControl.getGameState());
     }
 
     function getParticipant(uint256 index) public view returns (address) {

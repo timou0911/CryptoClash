@@ -18,6 +18,11 @@ contract UpperControl is VRFConsumerBaseV2 {
     error GameNotInProgress(GameState state);
 
     /** Type Declarations */
+    /** 
+     * @dev The first state(default value), NotGameContract, is used to prevent users from creating game instances
+     * @dev bypassing Upper Control, since functions in Game.sol require certain state, and state changing
+     * @dev is managed by Upper Control. 
+     */
     enum GameState {NotGameContract, WaitingForPlayers, InProgress, Finished}
 
     /** State Variables */
