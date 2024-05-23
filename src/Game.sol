@@ -58,8 +58,9 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private immutable i_upperControl;
-    address[] private s_players;
+    IUpperControl private i_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
+    address[PARTICIPANT_NUMBER] public s_players;
+    uint8 private playerNum = 0;
 
     uint8 private constant MAX_ROUND = 30;
         //requestion word for requesting ai at first round to get first event and decide which topic player work on.
@@ -122,11 +123,8 @@ contract Game {
         if (msg.value != PARTICIPANT_FEE) {
             revert WrongFeeAmount();
         }
-        if (s_players.length >= PARTICIPANT_NUMBER) {
+        if (playerNum >= PARTICIPANT_NUMBER) {
             revert ParticipantFull();
-        }
-        if (getState() != 0) {
-            revert GameNotInWaitingState();
         }
 
         s_players[playerNum] = msg.sender;
@@ -139,6 +137,7 @@ contract Game {
             emit GameStart();
         }
     }
+
     function gameStarting() onlyGameStateInProgress() private {
         if(gameRound == 0){
             requestAI();
