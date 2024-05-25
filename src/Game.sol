@@ -58,7 +58,7 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private s_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
+    IUpperControl private s_upperControl = IUpperControl(0xdAE4a9dabA1f6485C95d3753a7e637847214233e);
     address[PARTICIPANT_NUMBER] public s_players;
     uint8 private playerNum = 0;
 
@@ -104,14 +104,23 @@ contract Game {
         }
         _;
     }
-    modifier onlyResponseSuccess(){
+
+    // modifier onlyGamePlayers() {
+    //     if (s_upperControl.getPlayerToGame(msg.sender) != address(this)) {
+    //         revert CallerNotInThisGame(msg.sender);
+    //     }
+    //     _;
+    // }
+
+    modifier onlyResponseSuccess() {
         if(ai_response.success = false){
             revert AI_responseFail();
         }
         _;
     }
-    constructor(address gameCreator) payable onlyUpperControl() {
-        s_upperControl = IUpperControl(msg.sender);
+
+    constructor(address gameCreator) payable {
+        //s_upperControl = IUpperControl(msg.sender);
 
         s_players[playerNum] = gameCreator;
         ++playerNum;
