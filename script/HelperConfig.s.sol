@@ -16,9 +16,11 @@ contract HelperConfig is Script {
         address vrfCoordinatorV2;
         address link;
         uint256 deployerPrivateKey;
+        address deployerAddress;
     }
 
-    uint256 public DEFAULT_ANVIL_PRIVATE_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+    uint256 public DEFAULT_ANVIL_PRIVATE_KEY = 0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6;
+    address public DEFAULT_ANVIL_ADDRESS = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     event HelperConfig__CreatedMockVRFCoordinator(address vrfCoordinator);
 
@@ -37,7 +39,8 @@ contract HelperConfig is Script {
             callbackGasLimit: 500000,
             vrfCoordinatorV2: 0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625,
             link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
-            deployerPrivateKey: vm.envUint("PRIVATE_KEY")
+            deployerPrivateKey: vm.envUint("PRIVATE_KEY"),
+            deployerAddress: 0x115F6cdf65789EF751D0EB1Bfb40533Ae510f598
         });
     }
 
@@ -63,7 +66,8 @@ contract HelperConfig is Script {
             callbackGasLimit: 500000,
             vrfCoordinatorV2: address(vrfCoordinatorV2Mock),
             link: address(link),
-            deployerPrivateKey: DEFAULT_ANVIL_PRIVATE_KEY
+            deployerPrivateKey: DEFAULT_ANVIL_PRIVATE_KEY,
+            deployerAddress: DEFAULT_ANVIL_ADDRESS
         });
     }
 }

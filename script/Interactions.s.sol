@@ -23,6 +23,7 @@ contract CreateSubscription is Script {
             address vrfCoordinator,
             ,
             uint256 deployerPrivateKey
+            ,
         ) = helperConfig.activeNetworkConfig();
         return createSubscription(vrfCoordinator, deployerPrivateKey);
     }
@@ -62,6 +63,7 @@ contract AddConsumer is Script {
             address vrfCoordinator,
             ,
             uint256 deployerPrivateKey
+            ,
         ) = helperConfig.activeNetworkConfig();
         addConsumer(mostRecentlyDeployed, vrfCoordinator, subId, deployerPrivateKey);
     }
@@ -101,6 +103,7 @@ contract FundSubscription is Script {
             address vrfCoordinator,
             address link,
             uint256 deployerPrivateKey
+            ,
         ) = helperConfig.activeNetworkConfig();
 
         if (subId == 0) {

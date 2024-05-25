@@ -18,7 +18,8 @@ contract DeployUpperControl is Script {
             uint32 callbackGasLimit,
             address vrfCoordinator,
             address link,
-            uint256 deployerKey
+            uint256 deployerKey,
+            address deployerAddress
         ) = helperConfig.activeNetworkConfig();
 
         if (subscriptionId == 0) {
