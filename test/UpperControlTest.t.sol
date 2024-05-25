@@ -70,6 +70,7 @@ contract UpperControlTest is Test {
             vrfCoordinator,
             ,
             deployerKey
+            ,
         ) = helperConfig.activeNetworkConfig();
     }
 
