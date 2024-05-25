@@ -1,7 +1,6 @@
 -include .env
 
-DEFAULT_ANVIL_KEY := 0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6
-DEFAULT_ANVIL_ADDRESS := 0x90F79bf6EB2c4f870365E785982E1f101E93b906
+DEFAULT_ANVIL_KEY := 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 help:
 	@echo "Usage:"
@@ -41,5 +40,3 @@ endif
 deploy:
 	@forge script script/DeployUpperControl.s.sol:DeployUpperControl $(NETWORK_ARGS)
 	
-deploy-game:
-	@forge script script/DeployGame.s.sol:DeployGame $(NETWORK_ARGS)
