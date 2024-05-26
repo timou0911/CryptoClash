@@ -3,7 +3,7 @@ import upperControlMetadata from "../../out/UpperControl.sol/UpperControl.json" 
 import gameMetadata from "../../out/Game.sol/Game.json" with { type: 'json' };
 
 const upperControlABI = upperControlMetadata.abi;
-const upperControlAddr = "0xdAE4a9dabA1f6485C95d3753a7e637847214233e";
+const upperControlAddr = "0xdb4c9Fe64580E173edD5e00725276502d3816F29";
 const gameABI = gameMetadata.abi;
 const PARTICIPANT_FEE = "0.01";
 
@@ -52,8 +52,8 @@ async function createGame() {
             let txResponse = await upperControl.createGame({
                 value: ethers.utils.parseEther(PARTICIPANT_FEE),
             });
-            console.log("TX Response: ", txResponse);
             await listenForTxMine(txResponse, provider);
+            
             upperControl.on("GameCreated", async (gameAddress) => {
                 console.log("-- Game Address: ", gameAddress);
             });
@@ -78,7 +78,7 @@ async function createGame() {
 }
 
 async function enterGame() {
-    console.log("Game Entering...");
+    console.log("Game Entering with Game Address... ", gameAddress);
     if (typeof window.ethereum !== "undefined") {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
@@ -89,7 +89,6 @@ async function enterGame() {
             let txResponse = await game.enterGame({
                 value: ethers.utils.parseEther(PARTICIPANT_FEE),
             });
-            console.log("TX Response: ", txResponse);
             await listenForTxMine(txResponse, provider);
 
             const block = await provider.getBlockNumber()
