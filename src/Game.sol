@@ -74,7 +74,7 @@ contract Game {
     uint8 specialEventFrequency = 5;
 
     /** Events */
-    event GameEntered(address player);
+    event GameJoined(address player);
     event GameStart();
 
     event SendNews(string[] news);//each player hold a index
@@ -144,7 +144,7 @@ contract Game {
         s_players[playerNum] = msg.sender;
         ++playerNum;
 
-        emit GameEntered(msg.sender);
+        emit GameJoined(msg.sender);
 
         if (playerNum == PARTICIPANT_NUMBER) {
             i_upperControl.setGameState(2);
