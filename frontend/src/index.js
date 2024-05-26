@@ -18,7 +18,6 @@ enterGameButton.onclick = enterGame;
 
 let accounts;
 let account;
-let gameAddress;
 
 async function connect() {
     if (typeof window.ethereum !== "undefined") {
@@ -53,18 +52,18 @@ async function createGame() {
                 value: ethers.utils.parseEther(PARTICIPANT_FEE),
             });
             await listenForTxMine(txResponse, provider);
-            
+
             upperControl.on("GameCreated", async (gameAddress) => {
                 console.log("-- Game Address: ", gameAddress);
             });
+
             const block = await provider.getBlockNumber()
             const event = await upperControl.queryFilter("GameCreated", block - 1, block)
-            gameAddress = event[0].args.gameAddress
-
+            const gameAddress = event[0].args.gameAddress
             const game = new ethers.Contract(gameAddress, gameABI, signer);
 
-            console.log("-- Game Address: ", gameAddress)
-            console.log("-- Game Entered: ", await game.getParticipant(0));
+            console.log("-- Game Address Created: ", gameAddress)
+            console.log("-- Game Entered with Player Address: ", await game.getParticipant(0));
 
             gameAddressText.innerHTML = gameAddress
             console.log("Game Creating Finished");
@@ -78,13 +77,15 @@ async function createGame() {
 }
 
 async function enterGame() {
-    console.log("Game Entering with Game Address... ", gameAddress);
+    const gameAddress = document.getElementById("gameToJoin").value;
+    console.log("Entering Game with Game Address... ", gameAddress);
+    
     if (typeof window.ethereum !== "undefined") {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
         const game = new ethers.Contract(gameAddress, gameABI, signer);
-        // game has wrong address of upperControl (maybe pass upperControl address to constructor)
+
         try {
             let txResponse = await game.enterGame({
                 value: ethers.utils.parseEther(PARTICIPANT_FEE),
@@ -92,9 +93,8 @@ async function enterGame() {
             await listenForTxMine(txResponse, provider);
 
             const block = await provider.getBlockNumber()
-            const event = await game.queryFilter("GameEntered", block-1, block)
-            console.log(event)
-            console.log("-- Game Entered: ", account);
+            const event = await game.queryFilter("GameJoined", block-1, block)
+            console.log("-- Game Entered with Player Address: ", event[0].args.player);
         } catch (error) {
             console.log(error);
         }
@@ -102,6 +102,8 @@ async function enterGame() {
         createGameButton.innerHTML = "Please install MetaMask";
     }
 }
+
+
 
 function listenForTxMine(txResponse, provider) {  
     console.log(`Mining ${txResponse.hash}`)
