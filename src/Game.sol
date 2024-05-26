@@ -58,7 +58,7 @@ contract Game {
     /** State Variables */
     uint8 private constant PARTICIPANT_NUMBER = 5;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
-    IUpperControl private s_upperControl = IUpperControl(0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9);
+    IUpperControl private immutable i_upperControl;
     address[PARTICIPANT_NUMBER] public s_players;
     uint8 private playerNum = 0;
 
@@ -74,7 +74,7 @@ contract Game {
     uint8 specialEventFrequency = 5;
 
     /** Events */
-    event GameJoined(address player);
+    event GameEntered(address player);
     event GameStart();
 
     event SendNews(string[] news);//each player hold a index
@@ -83,8 +83,8 @@ contract Game {
     
     /** Modifiers */
     modifier onlyUpperControl() {
-        if (msg.sender != address(s_upperControl)) {
-            revert CallerNotUpperControl(msg.sender, address(s_upperControl));
+        if (msg.sender != address(i_upperControl)) {
+            revert CallerNotUpperControl(msg.sender, address(i_upperControl));
         }
         _;
     }
@@ -104,14 +104,23 @@ contract Game {
         }
         _;
     }
-    modifier onlyResponseSuccess(){
+
+    // modifier onlyGamePlayers() {
+    //     if (i_upperControl.getPlayerToGame(msg.sender) != address(this)) {
+    //         revert CallerNotInThisGame(msg.sender);
+    //     }
+    //     _;
+    // }
+
+    modifier onlyResponseSuccess() {
         if(ai_response.success = false){
             revert AI_responseFail();
         }
         _;
     }
-    constructor(address gameCreator) payable onlyUpperControl() {
-        s_upperControl = IUpperControl(msg.sender);
+
+    constructor(address gameCreator) payable {
+        i_upperControl = IUpperControl(msg.sender);
 
         s_players[playerNum] = gameCreator;
         ++playerNum;
@@ -135,10 +144,10 @@ contract Game {
         s_players[playerNum] = msg.sender;
         ++playerNum;
 
-        emit GameJoined(msg.sender);
+        emit GameEntered(msg.sender);
 
         if (playerNum == PARTICIPANT_NUMBER) {
-            s_upperControl.setGameState(2);
+            i_upperControl.setGameState(2);
             emit GameStart();
         }
     }
@@ -218,12 +227,12 @@ contract Game {
     }
 
     function requestRandomWord() onlyGameStateInProgress() private {
-        s_upperControl.requestRandomWord();
+        i_upperControl.requestRandomWord();
     }
 
     /** Getter Functions */
     function getState() public returns (uint8) {
-        return uint8(s_upperControl.getGameState());
+        return uint8(i_upperControl.getGameState());
     }
 
     function getParticipant(uint256 index) public view returns (address) {
