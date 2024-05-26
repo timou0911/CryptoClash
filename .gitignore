@@ -1,6 +1,8 @@
 # Compiler files
 cache/
 out/
+!out/UpperControl.sol
+!out/Game.sol
 
 # Ignores development broadcast logs
 !/broadcast
