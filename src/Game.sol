@@ -37,7 +37,7 @@ contract Game {
     }
 
     struct Player_response {
-        bool playerDecided;
+        bool playerDecided; //default = false
         uint8 playerDecision;
     }
 
@@ -197,7 +197,7 @@ contract Game {
         //get player response from front-end;
         // player_response  = array of player response
         for(uint8 i = 0; i < PARTICIPANT_NUMBER; ++i){
-            if(player_response[i].playerDecided == false){
+            if(player_response[i].playerDecided == false){ //if the player didn't make the decision, playerDecided = false, and then set playerDecision = 1
                 player_response[i].playerDecision = 1;
             }
         }
@@ -222,7 +222,7 @@ contract Game {
         uint256 randomWord
     ) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
         // take mod of randomWord to decide event
-        bidRound = randomWord%15 + 16; 
+        bidRound = randomWord%15 + 16; //so the bidRound would be 16 ~ 30 
         return received;
     }
 
