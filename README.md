@@ -9,7 +9,7 @@ Table of Contents
 - [Idea Ispiration]()
 - [Features]()
 - [Project Structure(remember to add parts that use Chainlnk)]()
-- [List of Libraries and Tools]()
+- [List of Frameworks and Libraries]()
 - [Demo Video]()
 - [Etherscan Link]()
 
