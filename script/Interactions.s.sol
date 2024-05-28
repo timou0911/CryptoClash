@@ -39,7 +39,7 @@ contract CreateSubscription is Script {
         vm.stopBroadcast();
 
         console.log("Subscription created with Id: ", subId);
-        console.log("Please update the subscriptionId in HelperConfig.s.sol");
+        console.log("Remember to update the subscription ID in HelperConfig.s.sol");
 
         return (subId, vrfCoordinator);
     }
