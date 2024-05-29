@@ -187,7 +187,7 @@ contract Game {
             string memory requestWord = ROUNDSTART_REQUESTION;
             // send request with requestWord the response with be : 
             // event/invite for each player , event shows on news , invite shows on Msg
-            AI_response storage ai_response ;//
+            ai_response ;//
         }else{
             
         }
