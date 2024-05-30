@@ -6,10 +6,10 @@ brief and eye-catching description
 Table of Contents
 ------------------
 - [Brief Introduciton]()
-- [Idea Ispiration]()
+- [Idea Inspiration]()
 - [Features]()
 - [Project Structure(remember to add parts that use Chainlnk)]()
 - [List of Frameworks and Libraries]()
 - [Demo Video]()
 - [Etherscan Link]()
-
+- [Further Improvement and Features to Add]()
