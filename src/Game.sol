@@ -167,7 +167,7 @@ contract Game {
             sendNews();
             sendEmail();
             sendMsg();
-            getPlayerResponse();
+            setPlayerResponse();
             requestAI();
         }
     }
@@ -249,7 +249,7 @@ contract Game {
         return s_players[index];
     }
 
-    function getPionts(uint256 index) public view returns (address){
+    function getPoints(uint256 index) public view returns (address){
         return player_point[index];
     }
 }
