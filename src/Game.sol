@@ -38,7 +38,7 @@ contract Game {
     }
 
     struct Player_response {
-        bool playerDecided;
+        bool playerDecided; //default = false
         uint8 playerDecision;
     }
 
@@ -62,6 +62,7 @@ contract Game {
     IUpperControl private immutable i_upperControl;
     address[PARTICIPANT_NUMBER] public s_players;
     uint8 private playerNum = 0;
+    address[PARTICIPANT_NUMBER] public player_point;
 
     uint8 private constant MAX_ROUND = 30;
     //requestion word for requesting ai at first round to get first event and decide which topic player work on.
@@ -203,18 +204,23 @@ contract Game {
         event_holder.emailForEachPlayer = ai_response.option;
     }
 
-    function setPlayerResponse(uint256 choice) onlyGameStateInProgress() onlyGamePlayers() public {
-
-    }
-
-    function getPlayerResponse() onlyGameStateInProgress() onlyUpperControl() public {
+    function getPlayerResponse() onlyGameStateInProgress() private{
         //get player response from front-end;
         // player_response  = array of player response
+        //if the player didn't make the decision, playerDecided = false, and then set playerDecision = 1
         for(uint8 i = 0; i < PARTICIPANT_NUMBER; ++i){
-            if(player_response[i].playerDecided == false){
+            if(player_response[i].playerDecided){
+                getPlayerResponse(player_response[i].playerDecision);
+            }
+            else {
                 player_response[i].playerDecision = 1;
             }
         }
+    }
+
+    function getPlayerResponse(uint256 index) onlyGameStateInProgress() private{
+        //get player's response from function setPlayerResponse
+        //send player's response to AI
     }
     
     function requestAI() onlyGameStateInProgress() private  {
@@ -222,7 +228,7 @@ contract Game {
             string memory requestWord = ROUNDSTART_REQUESTION;
             // send request with requestWord the response with be : 
             // event/invite for each player , event shows on news , invite shows on Msg
-            AI_response storage ai_response ;//
+            AI_response storage ai_response ;
         } else {
             
         }
@@ -236,12 +242,12 @@ contract Game {
         uint256 randomWord
     ) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
         // take mod of randomWord to decide event
-        bidRound = randomWord%15 + 16; 
+        bidRound = randomWord%15 + 16; //so the bidRound would be 16 ~ 30 
         return received;
     }
 
     function requestRandomWord() onlyGameStateInProgress() private {
-        i_upperControl.requestRandomWord();
+        i_upperControl.requestRandomWord(); 
     }
 
     /** Getter Functions */
@@ -251,5 +257,9 @@ contract Game {
 
     function getParticipant(uint256 index) public view returns (address) {
         return s_players[index];
+    }
+
+    function getPionts(uint256 index) public view returns (address){
+        return player_point[index];
     }
 }
