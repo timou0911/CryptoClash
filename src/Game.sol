@@ -5,6 +5,7 @@ interface IUpperControl {
     function requestRandomWord() external returns (uint256);
     function endGame() external;
     function setGameState(uint8 _gameState) external;
+    function setTime(uint256 _satrtTime) external;
     function getGameState() external returns (uint8);
 }
 
@@ -15,7 +16,6 @@ interface IUpperControl {
  * @dev XXXXX
  */
 
-// TODO: Develop a way to save upper control's address before consturctor called
 contract Game {
     /** Errors */
     error WrongFeeAmount();
@@ -23,6 +23,7 @@ contract Game {
     error ParicipantDuplicated(address player);
     error GameNotInWaitingState();
     error GameNotInProgressState();
+    error CallerNotGamePlayer(address caller);
     error CallerNotUpperControl(address caller, address upperControl);
     error AI_responseFail();
 
@@ -66,7 +67,7 @@ contract Game {
     //requestion word for requesting ai at first round to get first event and decide which topic player work on.
     string private constant ROUNDSTART_REQUESTION ="we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
     AI_response private ai_response;
-    Player_response[] private player_response;
+    Player_response[PARTICIPANT_NUMBER] private player_response;
     Event_holder private event_holder;
     //Player_statement[] private
     uint8 gameRound = 0;
@@ -105,12 +106,20 @@ contract Game {
         _;
     }
 
-    // modifier onlyGamePlayers() {
-    //     if (i_upperControl.getPlayerToGame(msg.sender) != address(this)) {
-    //         revert CallerNotInThisGame(msg.sender);
-    //     }
-    //     _;
-    // }
+    modifier onlyGamePlayers() {
+        bool isPlayer = false;
+        for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+            if (s_players[i] == msg.sender) {
+                isPlayer = true;
+                break;
+            }
+        }
+        if (isPlayer) {
+            _;
+        } else {
+            revert CallerNotGamePlayer(msg.sender);
+        }
+    }
 
     modifier onlyResponseSuccess() {
         if(ai_response.success = false){
@@ -172,6 +181,7 @@ contract Game {
     }
 
     function sendNews() onlyGameStateInProgress() private {
+        i_upperControl.setTime(block.timestamp);
         emit SendEmail(event_holder.newsForEachPlayer);
     }
 
@@ -193,7 +203,11 @@ contract Game {
         event_holder.emailForEachPlayer = ai_response.option;
     }
 
-    function getPlayerResponse() onlyGameStateInProgress() private{
+    function setPlayerResponse(uint256 choice) onlyGameStateInProgress() onlyGamePlayers() public {
+
+    }
+
+    function getPlayerResponse() onlyGameStateInProgress() onlyUpperControl() public {
         //get player response from front-end;
         // player_response  = array of player response
         for(uint8 i = 0; i < PARTICIPANT_NUMBER; ++i){
