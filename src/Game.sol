@@ -38,14 +38,14 @@ contract Game {
     }
 
     struct Player_response {
-        bool playerDecided; //default = false
         uint8 playerDecision;
+        uint8[] playerInvestment;
     }
 
     struct Player_statement {
         string currencyName;
         uint64 money;
-        uint64[5] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
+        uint64[3] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
         string topic;
     }
     struct Event_holder {
@@ -78,7 +78,7 @@ contract Game {
     /** Events */
     event GameJoined(address player);
     event GameStart();
-    event RequestOption(bytes32 requestId, string playerTopic, uint8 player_index);
+    event RequestOption(bytes32 requestId, string playerTopic, uint8 player_index,string option);
     event FirstRequest(bytes32 requestId, uint8 player_index);
     event SendNews(string[] news);//each player hold a index
     event SendEmail(string[] events);
@@ -123,12 +123,7 @@ contract Game {
         }
     }
 
-    modifier onlyResponseSuccess() {
-        if(ai_response.success = false){
-            revert AI_responseFail();
-        }
-        _;
-    }
+   
 
     constructor(address gameCreator) payable {
         i_upperControl = IUpperControl(msg.sender);
@@ -165,26 +160,25 @@ contract Game {
 
     function gameStarting() onlyGameStateInProgress() private {
         if(gameRound == 0){
-           // requestAI();
+            for(int i = 0; i< PARTICIPANT_NUMBER;i++)requestAI(i);
             ++gameRound;
         }
         gameFlow();
     }
 
-    function gameFlow() onlyGameStateInProgress() onlyResponseSuccess() private {
+    function gameFlow() onlyGameStateInProgress()  private {
         for(gameRound; gameRound <= MAX_ROUND; ++gameRound){
             setEventHolder();
             sendNews();
             sendEmail();
             sendMsg();
             getPlayerResponse();
-            //requestAI();
         }
     }
 
     function sendNews() onlyGameStateInProgress() private {
         i_upperControl.setTime(block.timestamp);
-        emit SendEmail(event_holder.newsForEachPlayer);
+        emit SendNews(event_holder.newsForEachPlayer);
     }
 
     function sendMsg() onlyGameStateInProgress() private {
@@ -205,7 +199,7 @@ contract Game {
         event_holder.emailForEachPlayer = ai_response.option;
     }
 
-    function getPlayerResponse() onlyGameStateInProgress() private{
+    function setPlayerResponse() onlyGameStateInProgress() private{
         //get player response from front-end;
         // player_response  = array of player response
         //if the player didn't make the decision, playerDecided = false, and then set playerDecision = 1
@@ -219,26 +213,23 @@ contract Game {
         }
     }
 
-    function getPlayerResponse(uint256 index) onlyGameStateInProgress() private{
+    function getPlayerResponse() onlyGameStateInProgress() private{
         //get player's response from function setPlayerResponse
         //send player's response to AI
+        for(uitn i = 0 ;i < PARTICIPANT_NUMBER ; i++){
+            requestAI(i);
+        }
     }
      
     function requestForcast(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId){
-        //args : [playerInvestment[], playerDecision,]
-        delete args ;
-        for(uint i=0;i<PARTICIPANT_NUMBER;i++)args.push(player_statement[player_index].investment[i]);
-        args.push(player_response[player_index].playerDecision);
-        delete information;
-        information = ai_response.option;//information for ai to use
-        information.push(player_statement[player_index].topic);
+        
     }
     function requestAI(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId) {
         requestId = keccak256(abi.encodePacked(block.timestamp, msg.sender, player_index));
         if(gameRound==0){
             emit FirstRequest(requestId,player_index);
         }else{
-            emit RequestOption(requestId, player_statement[player_index].topic,player_index);
+            emit RequestOption(requestId, player_statement[player_index].topic,player_index,ai_response.option[i]);
         }
     }
     function fulfillRequest(bytes32 requestId, string memory response, uint8 player_index) public {
