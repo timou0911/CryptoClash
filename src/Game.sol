@@ -47,7 +47,7 @@ contract Game {
     struct Player_statement {
         string currencyName;
         uint64 money;
-        uint64[5] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
+        uint64[3] investment;
         string topic;
     }
 
@@ -68,11 +68,12 @@ contract Game {
     address[PARTICIPANT_NUMBER] public player_point;
     uint8 private playerNum = 0;
 
-    uint8 private constant MAX_ROUND = 30;
+    uint8 private constant MAX_ROUND = 10;
     //requestion word for requesting ai at first round to get first event and decide which topic player work on.
-    string private constant ROUNDSTART_REQUESTION ="we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
+    string private constant ROUNDSTART_REQUESTION = "we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
     AI_response private ai_response;
-    Player_response[PARTICIPANT_NUMBER] private player_response;
+    // Player_response[PARTICIPANT_NUMBER] private player_response;
+    mapping(address player => Player_response) private player_response;
     Event_holder private event_holder;
     Player_statement[PARTICIPANT_NUMBER] private player_statement;
     uint8 gameRound = 0;
@@ -91,8 +92,9 @@ contract Game {
     event SendNews(string[] news);//each player hold a index
     event SendEmail(string[] events);
     event SendMsg(string[] suggention);
-    event RequestOption(bytes32 requestId, string playerTopic, uint8 player_index,string option);
-    event FirstRequest(bytes32 requestId, uint8 player_index);
+    event PlayerResponded(address player, uint8 choice);
+    event RequestOption(bytes32 requestId, string playerTopic, uint256 player_index,string option);
+    event FirstRequest(bytes32 requestId, uint256 player_index);
     event TokenListed(uint256 indexed id, address indexed player, uint256 indexed amount);
     event TokenUnlisted(uint256 indexed id, address indexed player, uint256 indexed amount);
     event TokenBought(uint256 indexed id, address indexed seller, uint256 indexed amount);
@@ -140,7 +142,7 @@ contract Game {
         i_upperControl = IUpperControl(msg.sender);
 
         s_players[playerNum] = gameCreator;
-        availableBalance[STABLE_COIN_ID][gameCreator] = 1000;
+        availableBalance[STABLE_COIN_ID][gameCreator] = 10000;
         availableBalance[playerNum][gameCreator] = 1000;
         tokenPrice[playerNum] = 100;
         ++playerNum;
@@ -162,7 +164,7 @@ contract Game {
         }
 
         s_players[playerNum] = msg.sender;
-        availableBalance[STABLE_COIN_ID][msg.sender] = 1000;
+        availableBalance[STABLE_COIN_ID][msg.sender] = 10000;
         availableBalance[playerNum][msg.sender] = 1000;
         tokenPrice[playerNum] = 100;
         ++playerNum;
@@ -175,7 +177,7 @@ contract Game {
         }
     }
 
-    function gameStarting() onlyGameStateInProgress() private {
+    function gameStarting() private onlyGameStateInProgress() {
         if (gameRound == 0) {
             for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) requestAI(i);
             ++gameRound;
@@ -183,6 +185,7 @@ contract Game {
         gameFlow();
     }
 
+    // idea: each process has its event emitted, and let Automation listen to them
     function gameFlow() onlyGameStateInProgress() private {
         setEventHolder();
         sendNews();
@@ -214,23 +217,15 @@ contract Game {
         event_holder.emailForEachPlayer = ai_response.option;
     }
 
-    function setPlayerResponse(uint256 choice) onlyGameStateInProgress() onlyGamePlayers() public {
-        //get player response from front-end
-        // player_response = array of player response
-        //if the player didn't make the decision, playerDecided = false, and then set playerDecision = 1
-        for (uint8 i = 0; i < PARTICIPANT_NUMBER; ++i) {
-            if (player_response[i].playerDecision == 0) {
-                getPlayerResponse(player_response[i].playerDecision);
-            } else {
-                player_response[i].playerDecision = 1;
-            }
-        }
+    function setPlayerResponse(uint8 choice) onlyGamePlayers() onlyGameStateInProgress() public {
+        player_response[msg.sender].playerDecision = choice;
+        emit PlayerResponded(msg.sender, choice);
     }
 
-    function getPlayerResponse(uint256 index) public onlyGameStateInProgress() onlyUpperControl() {
+    function getPlayerResponse() public onlyGameStateInProgress() onlyUpperControl() {
         //get player response from front-end;
         // player_response  = array of player response
-        for(uint i = 0 ;i < PARTICIPANT_NUMBER ; i++){
+        for(uint256 i = 0; i < PARTICIPANT_NUMBER; ++i){
             requestAI(i);
         }
     }
@@ -238,25 +233,30 @@ contract Game {
     function requestForcast(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId){
 
     }
+
+    function finishGame() private onlyGameStateInProgress() {
+        i_upperControl.endGame();
+    }
     
-    function requestAI(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId) {
+    function requestAI(uint256 player_index) onlyGameStateInProgress() private returns (bytes32 requestId) {
         requestId = keccak256(abi.encodePacked(block.timestamp, msg.sender, player_index));
-        if(gameRound==0){
-            emit FirstRequest(requestId,player_index);
-        }else{
-            emit RequestOption(requestId, player_statement[player_index].topic,player_index,ai_response.option[player_index]);
+        if(gameRound == 0) {
+            emit FirstRequest(requestId, player_index);
+        } else {
+            emit RequestOption(requestId, player_statement[player_index].topic, player_index, ai_response.option[player_index]);
         }
     }
 
     function fulfillRequest(bytes32 requestId, string memory response, uint8 player_index) public {
             ai_response.option[player_index]=response;
     }
-    function firstFulfillment(bytes32 requestId,string[] memory response)public{
-            for(uint i =0;i<PARTICIPANT_NUMBER;i++){
-                    ai_response.player_topic[i] = response[i*3];
-                    ai_response.news[i] = response[i*3+1];
-                    ai_response.messenge[i] = response[i*3+2];
-            }
+
+    function firstFulfillment(bytes32 requestId, string[] memory response) public {
+        for (uint256 i =0; i < PARTICIPANT_NUMBER; ++i){
+            ai_response.player_topic[i] = response[i*3];
+            ai_response.news[i] = response[i*3+1];
+            ai_response.messenge[i] = response[i*3+2];
+        }
     }
    
     function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
@@ -271,7 +271,7 @@ contract Game {
 
     /** Token Related */
     function listToken(uint256 id, uint256 amount) public onlyGamePlayers() onlyGameStateInProgress() {
-        uint256 balance = balanceOf(msg.sender, id);
+        uint256 balance = availableBalanceOf(msg.sender, id);
         if (balance < amount) {
             revert NotEnoughBalance(id, amount, balance);
         }
@@ -304,7 +304,7 @@ contract Game {
         emit TokenBought(id, seller, amount);
     }
 
-    function balanceOf(address account, uint256 id) public view returns (uint256) {
+    function availableBalanceOf(address account, uint256 id) public view returns (uint256) {
         return availableBalance[id][account];
     }
 
@@ -314,6 +314,14 @@ contract Game {
 
     function getTokenPrice(uint256 id) public view returns (uint256) {
         return tokenPrice[id];
+    }
+
+    function getNetWealth(address account) public view returns (uint256 netWealth) {
+        netWealth = 0;
+        for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+            netWealth += (availableBalanceOf(account, i) + listedBalanceOf(account, i)) * tokenPrice[i];
+        }
+        netWealth += (availableBalanceOf(account, STABLE_COIN_ID) + listedBalanceOf(account, STABLE_COIN_ID));
     }
 
 
