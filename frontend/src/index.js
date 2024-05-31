@@ -13,13 +13,18 @@ const createGameButton = document.getElementById("createGameButton");
 const enterGameButton = document.getElementById("enterGameButton");
 const gameAddressText = document.getElementById("gameAddress");
 const choiceButton = document.getElementById("choiceButton");
-const choiceList = document.getElementById('choiceList');
-const choiceForm = document.getElementById('choiceForm');
+const choiceList = document.getElementById("choiceList");
+const listTokenButton = document.getElementById("listTokenButton");
+const unlistTokenButton = document.getElementById("unlistTokenButton");
+const buyTokenButton = document.getElementById("buyTokenButton");
 
 connectButton.onclick = connect;
 createGameButton.onclick = createGame;
 enterGameButton.onclick = enterGame;
 choiceButton.onclick = setPlayerResponse;
+listTokenButton.onclick = listToken;
+unlistTokenButton.onclick = unlistToken;
+buyTokenButton.onclick = buyToken;
 
 let accounts;
 let account;
@@ -121,10 +126,139 @@ choiceButton.onclick = (event) => {
     setPlayerResponse();
 }
 
+listTokenButton.onclick = (event) => {
+    event.preventDefault();
+    listToken();
+}
+
+unlistTokenButton.onclick = (event) => {
+    event.preventDefault();
+    unlistToken();
+}
+
+buyTokenButton.onclick = (event) => {
+    event.preventDefault();
+    buyToken();
+}
+
 async function setPlayerResponse() {
     const choice = parseInt(choiceList.value);
     console.log("Choice: ", choice)
     console.log("Getting Player Response... ");
+
+    if (typeof window.ethereum !== "undefined") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const game = new ethers.Contract(gameAddressToJoin, gameABI, signer);
+
+        try {
+            let txResponse = await game.setPlayerResponse(choice);
+            await listenForTxMine(txResponse, provider);
+
+            const block = await provider.getBlockNumber();
+            const event = await game.queryFilter("ResponseSet", block - 1, block);
+            
+            console.log("-- Player Set Choice: ", event[0].args.choice);
+        } catch (error) {
+            console.log(error);
+            console.log("Choice Set Failed");
+        }
+    } else {
+        createGameButton.innerHTML = "Please install MetaMask";
+    }
+}
+
+async function listToken() {
+    const tokenId = parseInt(document.getElementById("listTokenList").value);
+    const amount = document.getElementById("listTokenAmount").value;
+    console.log("Token ID to List ", tokenId, "with Amount ", amount);
+    console.log("Listing Token... ");
+
+    if (typeof window.ethereum !== "undefined") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const game = new ethers.Contract(gameAddressToJoin, gameABI, signer);
+
+        try {
+            let txResponse = await game.listToken(tokenId, amount);
+            await listenForTxMine(txResponse, provider);
+
+            const block = await provider.getBlockNumber();
+            const event = await game.queryFilter("TokenListed", block - 1, block);
+            
+            console.log("-- Token Listed with ID: ", event[0].args.id, " and Amount", event[0].args.amount);
+        } catch (error) {
+            console.log(error);
+            console.log("Token Listing Failed");
+        }
+    } else {
+        createGameButton.innerHTML = "Please install MetaMask";
+    }
+}
+
+async function unlistToken() {
+    const tokenId = parseInt(document.getElementById("unlistTokenList").value);
+    const amount = document.getElementById("lunistTokenAmount").value;
+    console.log("Token ID to Unlist ", tokenId, "with Amount ", amount);
+    console.log("Unlisting Token... ");
+    
+    if (typeof window.ethereum !== "undefined") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const game = new ethers.Contract(gameAddressToJoin, gameABI, signer);
+
+        try {
+            let txResponse = await game.unlistToken(tokenId, amount);
+            await listenForTxMine(txResponse, provider);
+
+            const block = await provider.getBlockNumber();
+            const event = await game.queryFilter("TokenUnlisted", block - 1, block);
+            
+            console.log("-- Token Unlisted with ID: ", event[0].args.id, " and Amount", event[0].args.amount);
+        } catch (error) {
+            console.log(error);
+            console.log("Token Unlisting Failed");
+        }
+    } else {
+        createGameButton.innerHTML = "Please install MetaMask";
+    }
+}
+
+async function buyToken() {
+    const tokenId = parseInt(document.getElementById("buyTokenList").value);
+    const amount = document.getElementById("buyTokenAmount").value;
+    const seller = document.getElementById("buyTokenFrom").value;
+    console.log("Token ID to Buy ", tokenId, "with Amount ", amount);
+    console.log("Buying Token... ");
+    
+    if (typeof window.ethereum !== "undefined") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const game = new ethers.Contract(gameAddressToJoin, gameABI, signer);
+
+        try {
+            let txResponse = await game.buyToken(tokenId, seller, amount);
+            await listenForTxMine(txResponse, provider);
+
+            const block = await provider.getBlockNumber();
+            const event = await game.queryFilter("TokenBought", block - 1, block);
+            
+            console.log("-- Token Bought with ID: ", event[0].args.id, " and Amount ", event[0].args.amount, " From ", event[0].args.seller);
+        } catch (error) {
+            console.log(error);
+            console.log("Token Buying Failed");
+        }
+    } else {
+        createGameButton.innerHTML = "Please install MetaMask";
+    }
+}
+
+async function showData() {
+    console.log("Getting Data... ");
 
     if (typeof window.ethereum !== "undefined") {
         const provider = new ethers.providers.Web3Provider(window.ethereum);

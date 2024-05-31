@@ -8,18 +8,18 @@
     <center>
       <button id="connectButton">Connect</button>
       <label id="account">No account connected yet</label>
-      <br>
-      <br>
+
+      <br><br>
 
       <button id="createGameButton">Create Game</button>
       <label id="gameAddress">Created game will be shown here</label>
-      <br>
-      <br>
+
+      <br><br>
 
       <input id="gameToJoin" placeholder="Enter game address: 0x..." />
       <button id="enterGameButton">Enter Game</button>
-      <br>
-      <br>
+
+      <br><br>
 
       <form id="choiceForm">
         <label>Choose your way:</label>
@@ -31,6 +31,56 @@
         <br>
         <br>
         <input type="submit" id="choiceButton" value="Submit">
+      </form>
+
+      <br><br>
+
+      <form id="listTokenForm">
+        <label>List Token: </label>
+        <select id="listTokenList">
+          <option value="0">Token 1</option>
+          <option value="1">Token 2</option>
+          <option value="2">Token 3</option>
+        </select>
+        <label>Amount: </label>
+        <br><br>
+        <input type="number" id="listTokenAmount" min="1" required>
+        <br><br>
+        <input type="submit" id="listTokenButton" value="Submit">
+      </form>
+      
+      <br><br>
+
+      <form id="unlistTokenForm">
+        <label>Unlist Token: </label>
+        <select id="unlistTokenList">
+          <option value="0">Token 1</option>
+          <option value="1">Token 2</option>
+          <option value="2">Token 3</option>
+        </select>
+        <br><br>
+        <label>Amount: </label>
+        <input type="number" id="unlistTokenAmount" min="1" required>
+        <br><br>
+        <input type="submit" id="unlistTokenButton" value="Submit">
+      </form>
+
+      <br><br>
+
+      <form id="buyTokenForm">
+        <label>Buy Token: </label>
+        <select id="buyTokenList">
+          <option value="0">Token 1</option>
+          <option value="1">Token 2</option>
+          <option value="2">Token 3</option>
+        </select>
+        <label>Amount: </label>
+        <br><br>
+        <input type="number" id="buyTokenAmount" min="1" required>
+        <br><br>
+        <input type="submit" id="buyTokenFrom" value="Submit">
+        <br><br>
+        <input type="submit" id="buyTokenButton" value="Submit">
       </form>
     </center>
 
