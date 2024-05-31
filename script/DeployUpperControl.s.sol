@@ -13,18 +13,23 @@ contract DeployUpperControl is Script {
         HelperConfig helperConfig = new HelperConfig();
         AddConsumer addConsumer = new AddConsumer();
         (
-            uint64 subscriptionId,
+            uint64 VRF_subscriptionId,
             bytes32 gasLane,
-            uint32 callbackGasLimit,
+            uint32 VRF_callbackGasLimit,
             address vrfCoordinator,
+            uint64 AI_subscriptionId,
+            uint32 AI_callbackGasLimit,
+            bytes32 donID,
+            address router,
+            uint256 interval,
             address link,
             uint256 deployerKey,
             address deployerAddress
         ) = helperConfig.activeNetworkConfig();
 
-        if (subscriptionId == 0) {
+        if (VRF_subscriptionId == 0) {
             CreateSubscription createSubscription = new CreateSubscription();
-            (subscriptionId, vrfCoordinator) = createSubscription.createSubscription(
+            (VRF_subscriptionId, vrfCoordinator) = createSubscription.createSubscription(
                 vrfCoordinator,
                 deployerKey
             );
@@ -32,7 +37,7 @@ contract DeployUpperControl is Script {
             FundSubscription fundSubscription = new FundSubscription();
             fundSubscription.fundSubscription(
                 vrfCoordinator,
-                subscriptionId,
+                VRF_subscriptionId,
                 link,
                 deployerKey
             );
@@ -40,17 +45,22 @@ contract DeployUpperControl is Script {
 
         vm.startBroadcast(deployerKey);
         UpperControl upperControl = new UpperControl(
-            subscriptionId,
+            VRF_subscriptionId,
             gasLane,
-            callbackGasLimit,
-            vrfCoordinator
+            VRF_callbackGasLimit,
+            vrfCoordinator,
+            AI_subscriptionId, // 2858, https://functions.chain.link/sepolia/2858
+            AI_callbackGasLimit, // 300000
+            donID, // 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000
+            router, // 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0
+            interval // 30 seconds
         );
         vm.stopBroadcast();
 
         addConsumer.addConsumer(
             address(upperControl),
             vrfCoordinator,
-            subscriptionId,
+            VRF_subscriptionId,
             deployerKey
         );
         return (upperControl, helperConfig);

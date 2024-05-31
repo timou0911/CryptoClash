@@ -16,7 +16,7 @@ contract UpperControlTest is Test {
     HelperConfig public helperConfig;
 
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
-    uint16 private constant PARTICIPANT_NUMBER = 5;
+    uint16 private constant PARTICIPANT_NUMBER = 3;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
 
     uint64 subscriptionId;
