@@ -208,7 +208,7 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
         if (bytesArgs.length > 0) {
             req.setBytesArgs(bytesArgs);
         }
-        bytes32 requestId = _sendRequest(req.encodeCBOR(), subscriptionId, callbackGasLimit, donId);
+        requestId = _sendRequest(req.encodeCBOR(), subscriptionId, callbackGasLimit, donId);
         s_AI_requestIdToGameAddress[requestId] = msg.sender;
 
         emit AI_RequestSent(requestId);

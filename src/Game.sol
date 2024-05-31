@@ -167,13 +167,13 @@ contract Game {
     }
 
     function gameFlow() onlyGameStateInProgress()  private {
-        for(gameRound; gameRound <= MAX_ROUND; ++gameRound){
+        
             setEventHolder();
             sendNews();
             sendEmail();
             sendMsg();
             getPlayerResponse();
-        }
+        
     }
 
     function sendNews() onlyGameStateInProgress() private {
@@ -204,7 +204,7 @@ contract Game {
         // player_response  = array of player response
         //if the player didn't make the decision, playerDecided = false, and then set playerDecision = 1
         for(uint8 i = 0; i < PARTICIPANT_NUMBER; ++i){
-            if(player_response[i].playerDecided){
+            if(player_response[i].playerDecision==0){
                 getPlayerResponse(player_response[i].playerDecision);
             }
             else {
@@ -216,7 +216,7 @@ contract Game {
     function getPlayerResponse() onlyGameStateInProgress() private{
         //get player's response from function setPlayerResponse
         //send player's response to AI
-        for(uitn i = 0 ;i < PARTICIPANT_NUMBER ; i++){
+        for(uint i = 0 ;i < PARTICIPANT_NUMBER ; i++){
             requestAI(i);
         }
     }
@@ -229,7 +229,7 @@ contract Game {
         if(gameRound==0){
             emit FirstRequest(requestId,player_index);
         }else{
-            emit RequestOption(requestId, player_statement[player_index].topic,player_index,ai_response.option[i]);
+            emit RequestOption(requestId, player_statement[player_index].topic,player_index,ai_response.option[player_index]);
         }
     }
     function fulfillRequest(bytes32 requestId, string memory response, uint8 player_index) public {
