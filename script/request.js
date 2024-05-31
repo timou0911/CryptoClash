@@ -22,7 +22,7 @@ const sendRequest = async () => {
     .readFileSync(path.resolve(__dirname, "../source.js"))
     .toString();
 
-  const prompt = "Describe what a blockchain is in 15 words or less";
+  const prompt = "Pick five topic of cryptocurrency and seprated with /";
   const args = [prompt];
   const callbackGasLimit = 300_000;
 

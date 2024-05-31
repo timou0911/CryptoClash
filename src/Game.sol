@@ -30,7 +30,7 @@ contract Game {
     /** Type Declarations */
     struct AI_response {
         //useful information that will response by AI (this is what claude AI told me)
-        bool success;
+        string[] player_topic;
         string[] news;
         string[] option;
         string[] messenge;
@@ -48,7 +48,6 @@ contract Game {
         uint64[5] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
         string topic;
     }
-
     struct Event_holder {
         string[] newsOfPlayerDecision;
         string[] newsForEachPlayer;
@@ -70,15 +69,17 @@ contract Game {
     AI_response private ai_response;
     Player_response[PARTICIPANT_NUMBER] private player_response;
     Event_holder private event_holder;
-    //Player_statement[] private
+    Player_statement[PARTICIPANT_NUMBER] private player_statement;
     uint8 gameRound = 0;
     uint256 bidRound = 0;
     uint8 specialEventFrequency = 5;
-
+    uint64[] args;
+    string[] information;
     /** Events */
     event GameJoined(address player);
     event GameStart();
-
+    event RequestOption(bytes32 requestId, string playerTopic, uint8 player_index);
+    event FirstRequest(bytes32 requestId, uint8 player_index);
     event SendNews(string[] news);//each player hold a index
     event SendEmail(string[] events);
     event SendMsg(string[] suggention);
@@ -164,7 +165,7 @@ contract Game {
 
     function gameStarting() onlyGameStateInProgress() private {
         if(gameRound == 0){
-            requestAI();
+           // requestAI();
             ++gameRound;
         }
         gameFlow();
@@ -177,7 +178,7 @@ contract Game {
             sendEmail();
             sendMsg();
             getPlayerResponse();
-            requestAI();
+            //requestAI();
         }
     }
 
@@ -222,22 +223,34 @@ contract Game {
         //get player's response from function setPlayerResponse
         //send player's response to AI
     }
-    
-    function requestAI() onlyGameStateInProgress() private  {
-        if(gameRound == 0){
-            string memory requestWord = ROUNDSTART_REQUESTION;
-            // send request with requestWord the response with be : 
-            // event/invite for each player , event shows on news , invite shows on Msg
-            AI_response storage ai_response ;
-        } else {
-            
-        }
-        //calling js script to send request to AI, and request that AI should provide options seperate by / ; 
-       // AI_response storage ai_response = ...    
-       //solidity cant split string unless using other library 
-       //should we split it in javascript or in the contract?
+     
+    function requestForcast(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId){
+        //args : [playerInvestment[], playerDecision,]
+        delete args ;
+        for(uint i=0;i<PARTICIPANT_NUMBER;i++)args.push(player_statement[player_index].investment[i]);
+        args.push(player_response[player_index].playerDecision);
+        delete information;
+        information = ai_response.option;//information for ai to use
+        information.push(player_statement[player_index].topic);
     }
-   
+    function requestAI(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId) {
+        requestId = keccak256(abi.encodePacked(block.timestamp, msg.sender, player_index));
+        if(gameRound==0){
+            emit FirstRequest(requestId,player_index);
+        }else{
+            emit RequestOption(requestId, player_statement[player_index].topic,player_index);
+        }
+    }
+    function fulfillRequest(bytes32 requestId, string memory response, uint8 player_index) public {
+            ai_response.option[player_index]=response;
+    }
+    function firstFulfillment(bytes32 requestId,string[] memory response)public{
+            for(uint i =0;i<PARTICIPANT_NUMBER;i++){
+                    ai_response.player_topic[i] = response[i*3];
+                    ai_response.news[i] = response[i*3+1];
+                    ai_response.messenge[i] = response[i*3+2];
+            }
+    }
     function decideRandomEvent(
         uint256 randomWord
     ) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
