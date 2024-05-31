@@ -18,6 +18,7 @@ const provider = new ethers.providers.EtherscanProvider("sepolia",process.env.ET
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 const contract = new ethers.Contract(consumerAddress,abi.abi, wallet);
 
+
 // Function to make the OpenAI API request
 async function makeOpenAiRequest(text) {
   

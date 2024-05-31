@@ -41,13 +41,12 @@ contract Game {
 
     struct Player_response {
         uint8 playerDecision;
-        uint8[] playerInvestment;
     }
 
     struct Player_statement {
         string currencyName;
         uint64 money;
-        uint64[3] investment;
+        uint64[5] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
         string topic;
     }
     struct Event_holder {
