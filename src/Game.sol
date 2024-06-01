@@ -263,10 +263,12 @@ contract Game {
     function fulfillForecast(uint256[] memory newPrice) public onlyGameStateInProgress(){
             for(uint i =0 ;i<PARTICIPANT_NUMBER;i++)tokenPrice[i] = newPrice[i];
     }
+
     function fulfillRequest( string memory response, uint8 player_index) public {//requestId
             ai_response.option[player_index]=response;
     }
-    function firstFulfillment(bytes32 requestId, string[] memory response) public {
+    
+    function firstFulfillment(string[] memory response) public {
         for (uint256 i =0; i < PARTICIPANT_NUMBER; ++i){
             ai_response.player_topic[i] = response[i*3];
             ai_response.news[i] = response[i*3+1];
