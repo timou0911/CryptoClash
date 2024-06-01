@@ -349,8 +349,4 @@ contract Game {
     function getParticipant(uint256 index) public view returns (address) {
         return s_players[index];
     }
-
-    function getPoints(uint256 index) public view returns (address){
-        return player_point[index];
-    }
 }
