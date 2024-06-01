@@ -5,7 +5,7 @@ interface IUpperControl {
     function requestRandomWord() external returns (uint256);
     function endGame() external;
     function setGameState(uint8 _gameState) external;
-    function setTimer(uint256 _satrtTime) external;
+    function setTime(uint256 _satrtTime) external;
     function getGameState() external returns (uint8);
 }
 
@@ -41,18 +41,15 @@ contract Game {
 
     struct Player_response {
         uint8 playerDecision;
-        uint8[] playerInvestment;
     }
 
     struct Player_statement {
         string currencyName;
         uint64 money;
-        uint64[3] investment;
+        uint64[5] investment;//5 index just like index of s_players, the array represent a player investment in each cryptocurrency
         string topic;
     }
-
     struct Event_holder {
-        string[] newsOfPlayerDecision;
         string[] newsForEachPlayer;
         string[] msgForEachPlayer;
         string[] emailForEachPlayer;
@@ -96,6 +93,8 @@ contract Game {
     event PlayerResponded(address player, uint8 choice);
     event RequestOption(bytes32 requestId, string playerTopic, uint256 player_index,string option);
     event FirstRequest(bytes32 requestId, uint256 player_index);
+    event RandomRequest(string randomEvent,uint256 prince);
+    event RequestForecast(uint256[] price,uint256[] player_1, uint256[] player_2 ,uint256[] player_3  );
     event TokenListed(uint256 indexed id, address indexed player, uint256 indexed amount);
     event TokenUnlisted(uint256 indexed id, address indexed player, uint256 indexed amount);
     event TokenBought(uint256 indexed id, address indexed seller, uint256 indexed amount);
@@ -192,11 +191,10 @@ contract Game {
         sendNews();
         sendEmail();
         sendMsg();
-        getPlayerResponse();
     }
 
     function sendNews() onlyGameStateInProgress() private {
-        i_upperControl.setTimer(block.timestamp);
+        i_upperControl.setTime(block.timestamp);
         emit SendNews(event_holder.newsForEachPlayer);
     }
 
@@ -209,10 +207,7 @@ contract Game {
     }
 
     function setEventHolder() onlyGameStateInProgress() private {
-        for(uint256 i = 0; i < PARTICIPANT_NUMBER; ++i){
-            for(uint256 j = 0; j < PARTICIPANT_NUMBER; ++j)
-            event_holder.newsForEachPlayer[i] = string.concat(event_holder.newsForEachPlayer[i],event_holder.newsOfPlayerDecision[j]);
-        }
+        
         event_holder.newsForEachPlayer = ai_response.news;
         event_holder.msgForEachPlayer = ai_response.messenge;
         event_holder.emailForEachPlayer = ai_response.option;
@@ -226,34 +221,35 @@ contract Game {
     function getPlayerResponse() public onlyGameStateInProgress() onlyUpperControl() {
         //get player response from front-end;
         // player_response  = array of player response
-        for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
-            uint8 choice = player_response[s_players[i]].playerDecision;
+        for(uint256 i = 0; i < PARTICIPANT_NUMBER; ++i){
             requestAI(i);
         }
+        if(gameRound%SPECIAL_EVENT_FREQUENCY==0){
+            requestRandomWord();
+        }
+        requestForecast();
+        gameFlow();
     }
 
-    function requestForcast(uint8 player_index) onlyGameStateInProgress() private returns (bytes32 requestId){
-
+    function requestForecast() onlyGameStateInProgress() private {
+        delete args;
+        delete information;
+        for(uint i = 0;i<PARTICIPANT_NUMBER;i++){
+            information.push(getTokenPrice(i));
+            for(uint j =0 ;j<PARTICIPANT_NUMBER;j++){
+                args[i].push(listedBalanceOf(s_players[i],j));
+            }
+        }
+        emit RequestForecast(information,args[0],args[1],args[2]);
     }
 
     function finishGame() private onlyGameStateInProgress() {
-        uint256 mostWealth = 0;
-        address winner;
-        for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
-            address player = getPlayer(i);
-            if (getNetWealth(player) > mostWealth) {
-                mostWealth = getNetWealth(player);
-                winner = player;
-            }
-        }
-
-        i_upperControl.setGameState(3);
-        selfdestruct(payable(winner));
+        i_upperControl.endGame();
     }
     
     function requestAI(uint256 player_index) onlyGameStateInProgress() private returns (bytes32 requestId) {
         requestId = keccak256(abi.encodePacked(block.timestamp, msg.sender, player_index));
-        if (gameRound == 0) {
+        if(gameRound == 0) {
             emit FirstRequest(requestId, player_index);
         } else {
             emit RequestOption(requestId, player_statement[player_index].topic, player_index, ai_response.option[player_index]);
@@ -267,19 +263,22 @@ contract Game {
     function fulfillRequest( string memory response, uint8 player_index) public {//requestId
             ai_response.option[player_index]=response;
     }
-    
-    function firstFulfillment(string[] memory response) public {
+
+    function firstFulfillment( string[] memory response) public {
         for (uint256 i =0; i < PARTICIPANT_NUMBER; ++i){
             ai_response.player_topic[i] = response[i*3];
             ai_response.news[i] = response[i*3+1];
             ai_response.messenge[i] = response[i*3+2];
         }
     }
-   
-    function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress() returns (bool received) {
-        // take mod of randomWord to decide event
-        bidRound = randomWord%15 + 16;  //so the bidRound would be 16 ~ 30 
-        return received;
+
+    function fuilfillRandom(uint256 price) public onlyGameStateInProgress() {
+        for(uint i = 0 ;i< PARTICIPANT_NUMBER;i++)tokenPrice[i]+=(price%tokenPrice[i]);
+    }
+    
+    function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress()  {
+        for(uint i =0 ;i<PARTICIPANT_NUMBER;i++)ai_response.news[i]= string.concat(ai_response.news[i],specialEvents[randomWord%4]);
+        emit RandomRequest(specialEvents[randomWord%4],getTokenPrice(randomWord%4));
     }
 
     function requestRandomWord() onlyGameStateInProgress() private {
@@ -347,7 +346,11 @@ contract Game {
         return uint8(i_upperControl.getGameState());
     }
 
-    function getPlayer(uint256 index) public view returns (address) {
+    function getParticipant(uint256 index) public view returns (address) {
         return s_players[index];
+    }
+
+    function getPoints(uint256 index) public view returns (address){
+        return player_point[index];
     }
 }
