@@ -60,7 +60,7 @@ contract Game {
     uint8 private constant PARTICIPANT_NUMBER = 3;
     uint8 private constant STABLE_COIN_ID = 3;
     uint8 private constant MAX_ROUND = 10;
-    uint8 private constant SPECIAL_EVENT_FREQUENCY = 5;
+    uint8 private constant SPECIAL_EVENT_FREQUENCY = 3;
     string private constant ROUNDSTART_REQUESTION = "we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
 
     IUpperControl private immutable i_upperControl;
