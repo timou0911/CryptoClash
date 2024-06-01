@@ -180,9 +180,7 @@ contract Game {
 
     function gameStarting() private onlyGameStateInProgress() {
         if (gameRound == 0) {
-            for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
-                requestAI(i);
-            }
+            requestAI(0);
             ++gameRound;
         }
         gameFlow();
@@ -262,10 +260,12 @@ contract Game {
         }
     }
 
-    function fulfillRequest(bytes32 requestId, string memory response, uint8 player_index) public {
-        ai_response.option[player_index] = response;
+    function fulfillForecast(uint256[] memory newPrice) public onlyGameStateInProgress(){
+            for(uint i =0 ;i<PARTICIPANT_NUMBER;i++)tokenPrice[i] = newPrice[i];
     }
-
+    function fulfillRequest( string memory response, uint8 player_index) public {//requestId
+            ai_response.option[player_index]=response;
+    }
     function firstFulfillment(bytes32 requestId, string[] memory response) public {
         for (uint256 i =0; i < PARTICIPANT_NUMBER; ++i){
             ai_response.player_topic[i] = response[i*3];
