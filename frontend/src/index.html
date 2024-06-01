@@ -2,6 +2,18 @@
 <html>
   <head>
     <title>CoolGame</title>
+    <style>
+      table,
+      td,
+      th {
+          border: 1px solid;
+          padding: 7px;
+      }
+
+      table {
+          text-align: center;
+      }
+    </style>
   </head>
 
   <body>
@@ -16,72 +28,137 @@
 
       <br><br>
 
-      <input id="gameToJoin" placeholder="Enter game address: 0x..." />
+      <input id="gameToEnter" placeholder="Enter game address: 0x..." />
       <button id="enterGameButton">Enter Game</button>
 
       <br><br>
 
       <form id="choiceForm">
-        <label>Choose your way:</label>
+        <label>Choose your Action:</label>
         <select id="choiceList">
           <option value="0">No Action</option>
           <option value="1">Yes</option>
           <option value="2">No</option>
         </select>
-        <br>
-        <br>
-        <input type="submit" id="choiceButton" value="Submit">
+        <input type="submit" id="choiceButton" value="Choose">
       </form>
 
       <br><br>
 
-      <form id="listTokenForm">
-        <label>List Token: </label>
-        <select id="listTokenList">
-          <option value="0">Token 1</option>
-          <option value="1">Token 2</option>
-          <option value="2">Token 3</option>
-        </select>
-        <label>Amount: </label>
-        <br><br>
-        <input type="number" id="listTokenAmount" min="1" required>
-        <br><br>
-        <input type="submit" id="listTokenButton" value="Submit">
-      </form>
+      <table>
+        <tr>
+          <th></th>
+          <th>Token Price</th>
+          <th id="player1">Player 1 Balance</th>
+          <th id="player2">Player 2 Balance</th>
+          <th id="player3">Player 3 Balance</th>
+        </tr>
+        <tr>
+          <center>
+            <td id="token1">Token 1</td>
+            <td id="token1Price">0</td>
+            <td id="player1Token1Balance">0</td>
+            <td id="player2Token1Balance">0</td>
+            <td id="player3Token1Balance">0</td>
+          </center>
+        </tr>
+        <tr>
+          <center>
+            <td id="token2">Token 2</td>
+            <td id="token2Price">0</td>
+            <td id="player1Token2Balance">0</td>
+            <td id="player2Token2Balance">0</td>
+            <td id="player3Token2Balance">0</td>
+          </center>
+        </tr>
+        <tr>
+          <center>
+            <td id="token3">Token 3</td>
+            <td id="token3Price">0</td>
+            <td id="player1Token3Balance">0</td>
+            <td id="player2Token3Balance">0</td>
+            <td id="player3Token3Balance">0</td>
+          </center>
+        </tr>
+        <tr>
+          <center>
+            <td id="stableCoin">Stable Coin</td>
+            <td id="stableCoinPrice">X</td>
+            <td id="player1StableCoinBalance">0</td>
+            <td id="player2StableCoinBalance">0</td>
+            <td id="player3StableCoinBalance">0</td>
+          </center>
+        </tr>
+        <tr>
+          <center>
+            <td id="totalBalance">Total</td>
+            <td id="skip">X</td>
+            <td id="player1TotalBalance">0</td>
+            <td id="player2TotalBalance">0</td>
+            <td id="player3TotalBalance">0</td>
+          </center>
+        </tr>
+      </table>
+
+      <br><br>
       
-      <br><br>
-
-      <form id="unlistTokenForm">
-        <label>Unlist Token: </label>
-        <select id="unlistTokenList">
-          <option value="0">Token 1</option>
-          <option value="1">Token 2</option>
-          <option value="2">Token 3</option>
-        </select>
-        <br><br>
-        <label>Amount: </label>
-        <input type="number" id="unlistTokenAmount" min="1" required>
-        <br><br>
-        <input type="submit" id="unlistTokenButton" value="Submit">
-      </form>
-
-      <br><br>
-
-      <form id="buyTokenForm">
-        <label>Buy Token: </label>
-        <select id="buyTokenList">
-          <option value="0">Token 1</option>
-          <option value="1">Token 2</option>
-          <option value="2">Token 3</option>
-        </select>
-        <label>Amount: </label>
-        <br><br>
-        <input type="number" id="buyTokenAmount" min="1" required>
-        <br><br>
-        <input type="submit" id="buyTokenFrom" value="Submit">
-        <br><br>
-        <input type="submit" id="buyTokenButton" value="Submit">
-      </form>
+      <table>
+        <tr>
+          <th>List Token</th>
+          <th>Unlist Token</th>
+          <th>Buy Token</th>
+        </tr>
+        <tr>
+          <td>
+            <center>
+              <form id="listTokenForm">
+                <select id="listTokenList">
+                  <option value="0">Token 1</option>
+                  <option value="1">Token 2</option>
+                  <option value="2">Token 3</option>
+                </select>
+                <br><br>
+                <label>Amount: </label>
+                <input type="number" id="listTokenAmount" min="1" required>
+                <br><br>
+                <input type="submit" id="listTokenButton" value="List">
+              </form>
+            </center>
+          </td>
+          <td>
+            <center>
+              <form id="unlistTokenForm">
+                <select id="unlistTokenList">
+                  <option value="0">Token 1</option>
+                  <option value="1">Token 2</option>
+                  <option value="2">Token 3</option>
+                </select>
+                <br><br>
+                <label>Amount: </label>
+                <input type="number" id="unlistTokenAmount" min="1" required>
+                <br><br>
+                <input type="submit" id="unlistTokenButton" value="Unlist">
+              </form>
+            </center>
+          </td>
+          <td>
+            <center>
+              <form id="buyTokenForm">
+                <select id="buyTokenList">
+                  <option value="0">Token 1</option>
+                  <option value="1">Token 2</option>
+                  <option value="2">Token 3</option>
+                </select>
+                <br><br>
+                <label>Amount: </label>
+                <input type="number" id="buyTokenAmount" min="1" required>
+                <br><br>
+                <input type="submit" id="buyTokenButton" value="Buy">
+              </form>
+            </center>
+          </td>
+        </tr>
+      </table>
     </center>
 
   </body>

@@ -3,17 +3,14 @@ import upperControlMetadata from "../../out/UpperControl.sol/UpperControl.json" 
 import gameMetadata from "../../out/Game.sol/Game.json" with { type: 'json' };
 
 const upperControlABI = upperControlMetadata.abi;
-const upperControlAddr = "0xdb4c9Fe64580E173edD5e00725276502d3816F29";
+const upperControlAddr = "0x5CC5334CE401cA3731Fecb5b2e7738BB8f967591";
 const gameABI = gameMetadata.abi;
 const PARTICIPANT_FEE = "0.01";
 
 const connectButton = document.getElementById("connectButton");
-const accountText = document.getElementById("account");
 const createGameButton = document.getElementById("createGameButton");
 const enterGameButton = document.getElementById("enterGameButton");
-const gameAddressText = document.getElementById("gameAddress");
 const choiceButton = document.getElementById("choiceButton");
-const choiceList = document.getElementById("choiceList");
 const listTokenButton = document.getElementById("listTokenButton");
 const unlistTokenButton = document.getElementById("unlistTokenButton");
 const buyTokenButton = document.getElementById("buyTokenButton");
@@ -29,6 +26,11 @@ buyTokenButton.onclick = buyToken;
 let accounts;
 let account;
 let gameAddress;
+let players = [];
+let tokenPrice = [0, 0, 0];
+let availableBalance = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+let listedBalance = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+let totalBalance = [0, 0, 0];
 
 async function connect() {
     console.log("Connecting...");
@@ -45,7 +47,7 @@ async function connect() {
         accounts = await provider.listAccounts();
         account = ethers.utils.getAddress(accounts[0]);
 
-        accountText.innerHTML = account;
+        document.getElementById("account").innerHTML = account;
 
         console.log("Account Connected: ", account);
         console.log("With Chain ID: ", network.chainId);
@@ -77,12 +79,20 @@ async function createGame() {
             const event = await upperControl.queryFilter("GameCreated", block - 1, block);
             gameAddress = event[0].args.gameAddress;
             const game = new ethers.Contract(gameAddress, gameABI, signer);
+            let player = await game.getPlayer(0);
+            players.push(player);
+            document.getElementById("player1").innerHTML = player.substring(0, 6) + "...Balance";
+            document.getElementById("token1").innerHTML = "Token " + player.substring(0, 6);
 
-            gameAddressText.innerHTML = gameAddress;
+            document.getElementById("gameAddress").innerHTML = gameAddress;
 
             console.log("-- Game Address Created: ", gameAddress);
-            console.log("-- Game Entered with Player Address: ", await game.getParticipant(0));
+            console.log("-- Game Entered with Player Address: ", player);
             console.log("Game Creating Finished");
+
+            updateData();
+            setInterval(updateData, 10000);
+
         } catch (error) {
             console.log(error);
             console.log("Game Creating Failed");
@@ -93,7 +103,7 @@ async function createGame() {
 }
 
 async function enterGame() {
-    const gameAddressToJoin = document.getElementById("gameToJoin").value;
+    const gameAddressToJoin = document.getElementById("gameToEnter").value;
     console.log("Entering Game with Game Address... ", gameAddressToJoin);
     
     if (typeof window.ethereum !== "undefined") {
@@ -110,8 +120,17 @@ async function enterGame() {
 
             const block = await provider.getBlockNumber();
             const event = await game.queryFilter("GameJoined", block - 1, block);
+            let player = event[0].args.player;
+            players.push(player);
+            if (players.length === 2) {
+                document.getElementById("player2").innerHTML = player.substring(0, 6) + "...Balance";
+                document.getElementById("token2").innerHTML = "Token " + player.substring(0, 6);
+            } else {
+                document.getElementById("player3").innerHTML = player.substring(0, 6) + "...Balance";
+                document.getElementById("token3").innerHTML = "Token " + player.substring(0, 6);
+            }
             
-            console.log("-- Game Entered with Player Address: ", event[0].args.player);
+            console.log("-- Game Entered with Player Address: ", player);
         } catch (error) {
             console.log(error);
             console.log("Game Entering Failed");
@@ -142,7 +161,7 @@ buyTokenButton.onclick = (event) => {
 }
 
 async function setPlayerResponse() {
-    const choice = parseInt(choiceList.value);
+    const choice = parseInt(document.getElementById("choiceList").value);
     console.log("Choice: ", choice)
     console.log("Getting Player Response... ");
 
@@ -172,7 +191,7 @@ async function setPlayerResponse() {
 async function listToken() {
     const tokenId = parseInt(document.getElementById("listTokenList").value);
     const amount = document.getElementById("listTokenAmount").value;
-    console.log("Token ID to List ", tokenId, "with Amount ", amount);
+    console.log("Token ID to List", tokenId, "with Amount", amount);
     console.log("Listing Token... ");
 
     if (typeof window.ethereum !== "undefined") {
@@ -201,7 +220,7 @@ async function listToken() {
 async function unlistToken() {
     const tokenId = parseInt(document.getElementById("unlistTokenList").value);
     const amount = document.getElementById("lunistTokenAmount").value;
-    console.log("Token ID to Unlist ", tokenId, "with Amount ", amount);
+    console.log("Token ID to Unlist", tokenId, "with Amount", amount);
     console.log("Unlisting Token... ");
     
     if (typeof window.ethereum !== "undefined") {
@@ -231,7 +250,7 @@ async function buyToken() {
     const tokenId = parseInt(document.getElementById("buyTokenList").value);
     const amount = document.getElementById("buyTokenAmount").value;
     const seller = document.getElementById("buyTokenFrom").value;
-    console.log("Token ID to Buy ", tokenId, "with Amount ", amount);
+    console.log("Token ID to Buy", tokenId, "with Amount", amount);
     console.log("Buying Token... ");
     
     if (typeof window.ethereum !== "undefined") {
@@ -257,26 +276,50 @@ async function buyToken() {
     }
 }
 
-async function showData() {
-    console.log("Getting Data... ");
+async function updateData() {
+    console.log("Retrieving Data... ");
 
-    if (typeof window.ethereum !== "undefined") {
+    if (typeof window.ethereum !== "undefined" && gameAddress !== "undefined") {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
-        const game = new ethers.Contract(gameAddressToJoin, gameABI, signer);
+        const game = new ethers.Contract(gameAddress, gameABI, signer);
 
         try {
-            let txResponse = await game.setPlayerResponse(choice);
-            await listenForTxMine(txResponse, provider);
+            for (let i = 0; i < players.length; ++i) {
+                let price = await game.getTokenPrice(i);
+                tokenPrice[i] = price;
+                for (let j = 0; j < players.length; ++j) {
+                    availableBalance[i][j] = await game.availableBalanceOf(players[i], j);
+                    listedBalance[i][j] = await game.listedBalanceOf(players[i], j);
+                }
+                availableBalance[i][3] = await game.availableBalanceOf(players[i], 3);
+                let balance = await game.getNetWealth(players[i]);
+                totalBalance[i] = balance;
+            }
 
-            const block = await provider.getBlockNumber();
-            const event = await game.queryFilter("ResponseSet", block - 1, block);
-            
-            console.log("-- Player Set Choice: ", event[0].args.choice);
+            document.getElementById("token1Price").innerHTML = tokenPrice[0];
+            document.getElementById("token2Price").innerHTML = tokenPrice[1];
+            document.getElementById("token3Price").innerHTML = tokenPrice[2];
+            document.getElementById("player1Token1Balance").innerHTML = availableBalance[0][0] + "/" + listedBalance[0][0];
+            document.getElementById("player2Token1Balance").innerHTML = availableBalance[1][0] + "/" + listedBalance[1][0];
+            document.getElementById("player3Token1Balance").innerHTML = availableBalance[2][0] + "/" + listedBalance[2][0];            document.getElementById("player1Token2Balance").innerHTML = availableBalance[0][1] + "/" + listedBalance[0][1];
+            document.getElementById("player2Token2Balance").innerHTML = availableBalance[1][1] + "/" + listedBalance[1][1];
+            document.getElementById("player3Token2Balance").innerHTML = availableBalance[2][1] + "/" + listedBalance[2][1];
+            document.getElementById("player1Token3Balance").innerHTML = availableBalance[0][2] + "/" + listedBalance[0][2];
+            document.getElementById("player2Token3Balance").innerHTML = availableBalance[1][2] + "/" + listedBalance[1][2];
+            document.getElementById("player3Token3Balance").innerHTML = availableBalance[2][2] + "/" + listedBalance[2][2];
+            document.getElementById("player1StableCoinBalance").innerHTML = availableBalance[0][3];
+            document.getElementById("player2StableCoinBalance").innerHTML = availableBalance[1][3];
+            document.getElementById("player3StableCoinBalance").innerHTML = availableBalance[2][3];
+            document.getElementById("player1TotalBalance").innerHTML = totalBalance[0];
+            document.getElementById("player2TotalBalance").innerHTML = totalBalance[1];
+            document.getElementById("player3TotalBalance").innerHTML = totalBalance[2];
+
+            console.log("Data Retrieving Finished");
         } catch (error) {
             console.log(error);
-            console.log("Choice Set Failed");
+            console.log("Data Retrieving Failed");
         }
     } else {
         createGameButton.innerHTML = "Please install MetaMask";
