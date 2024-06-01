@@ -170,6 +170,8 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
     function fulfillRandomWords( uint256 _requestId, uint256[] memory _randomWords) internal override {
         address gameAddress = s_VRF_requestIdToGameAddress[_requestId];
         require(gameAddress != address(0), "Invalid request ID");
+
+        Game(gameAddress).decideRandomEvent(_randomWords[0]);
         
         emit VRF_RequestFulfilled(_requestId, _randomWords);
     }
@@ -199,7 +201,7 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
 
     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         address game = s_AI_requestIdToGameAddress[requestId];
-        // Game(game)
+        Game(game).fuilfillRandom(uint256(bytes32(response)));
         emit AI_RequestFulfilled(requestId, response, err);
     }
 
