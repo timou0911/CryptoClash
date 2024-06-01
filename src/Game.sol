@@ -230,6 +230,7 @@ contract Game {
         requestForecast();
         gameFlow();
     }
+
     function requestForecast() onlyGameStateInProgress() private {
         delete args;
         delete information;
@@ -241,6 +242,7 @@ contract Game {
         }
         emit RequestForecast(information,args[0],args[1],args[2]);
     }
+
     function finishGame() private onlyGameStateInProgress() {
         i_upperControl.endGame();
     }
@@ -253,9 +255,11 @@ contract Game {
             emit RequestOption(requestId, player_statement[player_index].topic, player_index, ai_response.option[player_index]);
         }
     }
+
     function fulfillForecast(uint256[] memory newPrice) public onlyGameStateInProgress(){
             for(uint i =0 ;i<PARTICIPANT_NUMBER;i++)tokenPrice[i] = newPrice[i];
     }
+
     function fulfillRequest( string memory response, uint8 player_index) public {//requestId
             ai_response.option[player_index]=response;
     }
@@ -267,9 +271,11 @@ contract Game {
             ai_response.messenge[i] = response[i*3+2];
         }
     }
+
     function fuilfillRandom(uint256 price) public onlyGameStateInProgress() {
         for(uint i = 0 ;i< PARTICIPANT_NUMBER;i++)tokenPrice[i]+=(price%tokenPrice[i]);
     }
+    
     function decideRandomEvent(uint256 randomWord) public onlyUpperControl() onlyGameStateInProgress()  {
         for(uint i =0 ;i<PARTICIPANT_NUMBER;i++)ai_response.news[i]= string.concat(ai_response.news[i],specialEvents[randomWord%4]);
         emit RandomRequest(specialEvents[randomWord%4],getTokenPrice(randomWord%4));
