@@ -56,32 +56,33 @@ contract Game {
     }
     
     /** State Variables */
+     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
     uint8 private constant PARTICIPANT_NUMBER = 3;
-    uint256 private constant PARTICIPANT_FEE = 0.01 ether;
     uint8 private constant STABLE_COIN_ID = 3;
+    uint8 private constant MAX_ROUND = 10;
+    uint8 private constant SPECIAL_EVENT_FREQUENCY = 5;
+    string private constant ROUNDSTART_REQUESTION = "we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
 
     IUpperControl private immutable i_upperControl;
-    address[PARTICIPANT_NUMBER] public s_players;
-    address[PARTICIPANT_NUMBER] public player_point;
-    uint8 private playerNum = 0;
 
-    uint8 private constant MAX_ROUND = 10;
-    //requestion word for requesting ai at first round to get first event and decide which topic player work on.
-    string private constant ROUNDSTART_REQUESTION = "we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
-    AI_response private ai_response;
-    // Player_response[PARTICIPANT_NUMBER] private player_response;
-    mapping(address player => Player_response) private player_response;
-    Event_holder private event_holder;
-    Player_statement[PARTICIPANT_NUMBER] private player_statement;
+    uint8 private playerNum = 0;
     uint8 gameRound = 0;
     uint256 bidRound = 0;
-    uint8 specialEventFrequency = 5;
+    
+    //requestion word for requesting ai at first round to get first event and decide which topic player work on.
+    AI_response private ai_response;
+    Event_holder private event_holder;
+
+    address[PARTICIPANT_NUMBER] public s_players;
+    Player_statement[PARTICIPANT_NUMBER] private player_statement;
     uint256[][] args;
     uint256[] information;
     string[] specialEvents = ["Major advancements in blockchain technology lead to price increases.","The approval by the U.S. Securities and Exchange Commission (SEC) results in price increases.","the exchanges are hacked, prices tend to decrease.","Global economic instability causes prices to decrease."];
+
+    mapping(address player => Player_response) private player_response; // Player_response[PARTICIPANT_NUMBER] private player_response;
     mapping(uint256 id => mapping(address account => uint256)) private availableBalance;
     mapping(uint256 id => mapping(address account => uint256)) private listedBalance;
-    mapping(uint256 id => uint256 price) private tokenPrice; // Token price is anchored to stable coin
+    mapping(uint256 id => uint256 price) private tokenPrice; // Token price per stable coin
 
     /** Events */
     event GameJoined(address player);
