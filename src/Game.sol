@@ -56,7 +56,7 @@ contract Game {
     }
     
     /** State Variables */
-     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
+    uint256 private constant PARTICIPANT_FEE = 0.01 ether;
     uint8 private constant PARTICIPANT_NUMBER = 3;
     uint8 private constant STABLE_COIN_ID = 3;
     uint8 private constant MAX_ROUND = 10;
