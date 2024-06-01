@@ -78,8 +78,8 @@ contract Game {
 
     address[PARTICIPANT_NUMBER] public s_players;
     Player_statement[PARTICIPANT_NUMBER] private player_statement;
-    uint64[] args;
-    string[] information;
+    uint256[][] args;
+    uint256[] information;
     string[] specialEvents = ["Major advancements in blockchain technology lead to price increases.","The approval by the U.S. Securities and Exchange Commission (SEC) results in price increases.","the exchanges are hacked, prices tend to decrease.","Global economic instability causes prices to decrease."];
 
     mapping(address player => Player_response) private player_response; // Player_response[PARTICIPANT_NUMBER] private player_response;
