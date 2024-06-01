@@ -146,20 +146,6 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
     }
 
     /**
-     * @notice Chnage game state to finished
-     * @dev This function is called by game instances when game is over
-     */
-    function endGame() public onlyGameContract() {
-        if (s_gamesState[msg.sender] != GameState.InProgress) {
-            revert GameNotInProgress(s_gamesState[msg.sender]);
-        }
-
-        s_gamesState[msg.sender] = GameState.Finished;
-
-        emit GameFinished(msg.sender);
-    }
-
-    /**
      * @notice Called by game instances to request random words
      * @dev Should first check caller is game instance or not
      */
@@ -186,8 +172,7 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
         require(gameAddress != address(0), "Invalid request ID");
 
         bool received = Game(gameAddress).decideRandomEvent(_randomWords[0]);
-        require(received, "random words sent failed");
-
+        
         emit VRF_RequestFulfilled(_requestId, _randomWords);
     }
 
@@ -208,13 +193,13 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
         if (bytesArgs.length > 0) {
             req.setBytesArgs(bytesArgs);
         }
-        bytes32 requestId = _sendRequest(req.encodeCBOR(), subscriptionId, callbackGasLimit, donId);
+        requestId = _sendRequest(req.encodeCBOR(), subscriptionId, callbackGasLimit, donId);
         s_AI_requestIdToGameAddress[requestId] = msg.sender;
 
         emit AI_RequestSent(requestId);
     }
 
-    function fulfillRequest( bytes32 requestId, bytes memory response, bytes memory err) internal override {
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         address game = s_AI_requestIdToGameAddress[requestId];
         // Game(game)
         emit AI_RequestFulfilled(requestId, response, err);

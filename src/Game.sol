@@ -5,7 +5,7 @@ interface IUpperControl {
     function requestRandomWord() external returns (uint256);
     function endGame() external;
     function setGameState(uint8 _gameState) external;
-    function setTime(uint256 _satrtTime) external;
+    function setTimer(uint256 _satrtTime) external;
     function getGameState() external returns (uint8);
 }
 
@@ -59,32 +59,32 @@ contract Game {
     }
     
     /** State Variables */
-    uint8 private constant PARTICIPANT_NUMBER = 3;
     uint256 private constant PARTICIPANT_FEE = 0.01 ether;
+    uint8 private constant PARTICIPANT_NUMBER = 3;
     uint8 private constant STABLE_COIN_ID = 3;
+    uint8 private constant MAX_ROUND = 10;
+    uint8 private constant SPECIAL_EVENT_FREQUENCY = 5;
+    string private constant ROUNDSTART_REQUESTION = "we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
 
     IUpperControl private immutable i_upperControl;
-    address[PARTICIPANT_NUMBER] public s_players;
-    address[PARTICIPANT_NUMBER] public player_point;
-    uint8 private playerNum = 0;
 
-    uint8 private constant MAX_ROUND = 10;
-    //requestion word for requesting ai at first round to get first event and decide which topic player work on.
-    string private constant ROUNDSTART_REQUESTION = "we just wrote a Game featuring using you to provide game events and decide the outcome, so you should be neutral and make the game versertil for them, now there are five players playing a role in cryptocurrency provider, just random pick a topic (AI, GameFi, defi, etc.) they should work on for them, and now create a random opportunity event as a news for them that will effect the market for each of them, for instance a , for gamefi : there is a off-chain game company want to go on-chain and for the gamefi crypto . some event like this just provide in one line and  a line of player's assistant ask wether to cooperate with them, two line are seperate with / ";
-    AI_response private ai_response;
-    // Player_response[PARTICIPANT_NUMBER] private player_response;
-    mapping(address player => Player_response) private player_response;
-    Event_holder private event_holder;
-    Player_statement[PARTICIPANT_NUMBER] private player_statement;
+    uint8 private playerNum = 0;
     uint8 gameRound = 0;
     uint256 bidRound = 0;
-    uint8 specialEventFrequency = 5;
+    
+    //requestion word for requesting ai at first round to get first event and decide which topic player work on.
+    AI_response private ai_response;
+    Event_holder private event_holder;
+
+    address[PARTICIPANT_NUMBER] public s_players;
+    Player_statement[PARTICIPANT_NUMBER] private player_statement;
     uint64[] args;
     string[] information;
 
+    mapping(address player => Player_response) private player_response; // Player_response[PARTICIPANT_NUMBER] private player_response;
     mapping(uint256 id => mapping(address account => uint256)) private availableBalance;
     mapping(uint256 id => mapping(address account => uint256)) private listedBalance;
-    mapping(uint256 id => uint256 price) private tokenPrice; // Token price is anchored to stable coin
+    mapping(uint256 id => uint256 price) private tokenPrice; // Token price per stable coin
 
     /** Events */
     event GameJoined(address player);
@@ -179,7 +179,9 @@ contract Game {
 
     function gameStarting() private onlyGameStateInProgress() {
         if (gameRound == 0) {
-            for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) requestAI(i);
+            for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+                requestAI(i);
+            }
             ++gameRound;
         }
         gameFlow();
@@ -195,7 +197,7 @@ contract Game {
     }
 
     function sendNews() onlyGameStateInProgress() private {
-        i_upperControl.setTime(block.timestamp);
+        i_upperControl.setTimer(block.timestamp);
         emit SendNews(event_holder.newsForEachPlayer);
     }
 
@@ -225,7 +227,8 @@ contract Game {
     function getPlayerResponse() public onlyGameStateInProgress() onlyUpperControl() {
         //get player response from front-end;
         // player_response  = array of player response
-        for(uint256 i = 0; i < PARTICIPANT_NUMBER; ++i){
+        for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+            uint8 choice = player_response[s_players[i]].playerDecision;
             requestAI(i);
         }
     }
@@ -235,12 +238,23 @@ contract Game {
     }
 
     function finishGame() private onlyGameStateInProgress() {
-        i_upperControl.endGame();
+        uint256 mostWealth = 0;
+        address winner;
+        for (uint256 i = 0; i < PARTICIPANT_NUMBER; ++i) {
+            address player = getPlayer(i);
+            if (getNetWealth(player) > mostWealth) {
+                mostWealth = getNetWealth(player);
+                winner = player;
+            }
+        }
+
+        i_upperControl.setGameState(3);
+        selfdestruct(payable(winner));
     }
     
     function requestAI(uint256 player_index) onlyGameStateInProgress() private returns (bytes32 requestId) {
         requestId = keccak256(abi.encodePacked(block.timestamp, msg.sender, player_index));
-        if(gameRound == 0) {
+        if (gameRound == 0) {
             emit FirstRequest(requestId, player_index);
         } else {
             emit RequestOption(requestId, player_statement[player_index].topic, player_index, ai_response.option[player_index]);
@@ -248,7 +262,7 @@ contract Game {
     }
 
     function fulfillRequest(bytes32 requestId, string memory response, uint8 player_index) public {
-            ai_response.option[player_index]=response;
+        ai_response.option[player_index] = response;
     }
 
     function firstFulfillment(bytes32 requestId, string[] memory response) public {
@@ -330,11 +344,7 @@ contract Game {
         return uint8(i_upperControl.getGameState());
     }
 
-    function getParticipant(uint256 index) public view returns (address) {
+    function getPlayer(uint256 index) public view returns (address) {
         return s_players[index];
-    }
-
-    function getPoints(uint256 index) public view returns (address){
-        return player_point[index];
     }
 }
