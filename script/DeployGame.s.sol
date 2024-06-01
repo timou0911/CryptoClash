@@ -10,11 +10,16 @@ contract DeployGame is Script {
     function run() external returns (Game, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
         (
-            uint64 subscriptionId,
-            bytes32 gasLane,
-            uint32 callbackGasLimit,
-            address vrfCoordinator,
-            address link,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
             uint256 deployerKey,
             address deployerAddress
         ) = helperConfig.activeNetworkConfig();

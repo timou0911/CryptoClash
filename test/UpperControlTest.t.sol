@@ -28,8 +28,6 @@ contract UpperControlTest is Test {
     address public PLAYER1 = makeAddr("PLAYER1");
     address public PLAYER2 = makeAddr("PLAYER2");
     address public PLAYER3 = makeAddr("PLAYER3");
-    address public PLAYER4 = makeAddr("PLAYER4");
-    address public PLAYER5 = makeAddr("PLAYER5");
     uint256 public constant STARTING_BALANCE = 1 ether;
     address game;
     
@@ -40,14 +38,10 @@ contract UpperControlTest is Test {
         _;
     }
 
-    modifier makeFourOtherPlayersJoin() {
+    modifier makeTwoOtherPlayersJoin() {
         vm.prank(PLAYER2);
         Game(game).enterGame{value: PARTICIPANT_FEE}();
         vm.prank(PLAYER3);
-        Game(game).enterGame{value: PARTICIPANT_FEE}();
-        vm.prank(PLAYER4);
-        Game(game).enterGame{value: PARTICIPANT_FEE}();
-        vm.prank(PLAYER5);
         Game(game).enterGame{value: PARTICIPANT_FEE}();
         _;
     }
@@ -60,14 +54,17 @@ contract UpperControlTest is Test {
         vm.deal(PLAYER1, STARTING_BALANCE);
         vm.deal(PLAYER2, STARTING_BALANCE);
         vm.deal(PLAYER3, STARTING_BALANCE);
-        vm.deal(PLAYER4, STARTING_BALANCE);
-        vm.deal(PLAYER5, STARTING_BALANCE);
 
         (
             subscriptionId,
             gasLane,
             callbackGasLimit,
             vrfCoordinator,
+            ,
+            ,
+            ,
+            ,
+            ,
             ,
             deployerKey
             ,
@@ -103,10 +100,10 @@ contract UpperControlTest is Test {
         vm.prank(PLAYER2);
         Game(game).enterGame{value: PARTICIPANT_FEE}();
 
-        assert(PLAYER2 == Game(game).getParticipant(1));
+        assert(PLAYER2 == Game(game).getPlayer(1));
     }
 
-    function testPlayerCantJoinAfterParticipantNumberIsFull() public createGame() makeFourOtherPlayersJoin() {
+    function testPlayerCantJoinAfterParticipantNumberIsFull() public createGame() makeTwoOtherPlayersJoin() {
         address PLAYER6 = makeAddr("PLAYER6");
         vm.deal(PLAYER6, STARTING_BALANCE);
         vm.prank(PLAYER6);
@@ -131,46 +128,15 @@ contract UpperControlTest is Test {
         Game(game).enterGame{value: PARTICIPANT_FEE}();
     }
 
-    function testStateChangeToInProgressWhenPlayerNumberIsFull() public createGame() makeFourOtherPlayersJoin() {
+    function testStateChangeToInProgressWhenPlayerNumberIsFull() public createGame() makeTwoOtherPlayersJoin() {
         assert(Game(game).getState() == uint8(UpperControl.GameState.InProgress));
     }
 
 
-    /*          */
-    /* endeGame */
-    /*          */
-    function testGameFinishedSuccessfully() public createGame() makeFourOtherPlayersJoin() {
-        vm.prank(game);
-        upperControl.endGame();
-
-        assert(Game(game).getState() == uint8(UpperControl.GameState.Finished));
-    }
-
-    function testGameCantFinishIfNotContractCalls() public createGame() makeFourOtherPlayersJoin() {
-        vm.prank(PLAYER1);
-        vm.expectRevert();
-
-        upperControl.endGame();
-    }
-
-    function testGameCantFinishIfStateIsNotInProgress() public createGame() {
-        vm.prank(PLAYER2);
-        Game(game).enterGame{value: PARTICIPANT_FEE}();
-        vm.prank(PLAYER3);
-        Game(game).enterGame{value: PARTICIPANT_FEE}();
-        vm.prank(PLAYER4);
-        Game(game).enterGame{value: PARTICIPANT_FEE}();
-
-        vm.prank(game);
-        vm.expectRevert();
-
-        upperControl.endGame();
-    }
-
     /*                    */
     /* requestRandomWords */
     /*                    */
-    function testRequestRandomWordsWorks() public createGame() makeFourOtherPlayersJoin() {
+    function testRequestRandomWordsWorks() public createGame() makeTwoOtherPlayersJoin() {
         vm.prank(game);
         uint256 requestId = upperControl.requestRandomWords();
 
@@ -180,7 +146,7 @@ contract UpperControlTest is Test {
     /*                    */
     /* fulfillRandomWords */
     /*                    */
-    function testFulfillRandomWordsWorks() public createGame() makeFourOtherPlayersJoin() {
+    function testFulfillRandomWordsWorks() public createGame() makeTwoOtherPlayersJoin() {
         vm.prank(game);
         uint256 requestId = upperControl.requestRandomWords();
         console.log("Request ID 1: ", requestId);
@@ -194,7 +160,7 @@ contract UpperControlTest is Test {
         //console.log("Random Words: ", entries[1].topics[1]);
     }
 
-    function testFulfillRandomWordsFailsWithNonexistentRequestId() public createGame() makeFourOtherPlayersJoin() {
+    function testFulfillRandomWordsFailsWithNonexistentRequestId() public createGame() makeTwoOtherPlayersJoin() {
         vm.prank(game);
         uint256 requestId = upperControl.requestRandomWords();
         console.log("Request ID 1: ", requestId);

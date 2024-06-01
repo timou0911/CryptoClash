@@ -24,7 +24,7 @@ contract DeployUpperControl is Script {
             uint256 interval,
             address link,
             uint256 deployerKey,
-            address deployerAddress
+            // address deployerAddress
         ) = helperConfig.activeNetworkConfig();
 
         if (VRF_subscriptionId == 0) {
