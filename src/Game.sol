@@ -177,7 +177,6 @@ contract Game {
 
         if (playerNum == PARTICIPANT_NUMBER) {
             i_upperControl.setGameState(2);
-            emit GameStart();
         }
     }
 
