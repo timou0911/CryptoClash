@@ -140,26 +140,6 @@ async function enterGame() {
     }
 }
 
-choiceButton.onclick = (event) => {
-    event.preventDefault();
-    setPlayerResponse();
-}
-
-listTokenButton.onclick = (event) => {
-    event.preventDefault();
-    listToken();
-}
-
-unlistTokenButton.onclick = (event) => {
-    event.preventDefault();
-    unlistToken();
-}
-
-buyTokenButton.onclick = (event) => {
-    event.preventDefault();
-    buyToken();
-}
-
 async function setPlayerResponse() {
     const choice = parseInt(document.getElementById("choiceList").value);
     console.log("Choice: ", choice)
@@ -336,4 +316,24 @@ function listenForTxMine(txResponse, provider) {
           resolve();
       })
     })
+}
+
+choiceButton.onclick = (event) => {
+    event.preventDefault();
+    setPlayerResponse();
+}
+
+listTokenButton.onclick = (event) => {
+    event.preventDefault();
+    listToken();
+}
+
+unlistTokenButton.onclick = (event) => {
+    event.preventDefault();
+    unlistToken();
+}
+
+buyTokenButton.onclick = (event) => {
+    event.preventDefault();
+    buyToken();
 }
