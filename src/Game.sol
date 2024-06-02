@@ -63,8 +63,8 @@ contract Game {
     IUpperControl private immutable i_upperControl;
 
     uint8 private playerNum = 0;
-    uint8 gameRound = 0;
-    uint256 bidRound = 0;
+    uint8 private gameRound = 0;
+    uint256 private bidRound = 0;
     
     //requestion word for requesting ai at first round to get first event and decide which topic player work on.
     AI_response private ai_response;
@@ -388,7 +388,7 @@ contract Game {
         return uint8(i_upperControl.getGameState());
     }
 
-    function getParticipant(uint256 index) public view returns (address) {
+    function getPlayer(uint256 index) public view returns (address) {
         return s_players[index];
     }
 }

@@ -205,7 +205,6 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
 
     /** Setter Functions */
     function setGameState(uint8 _gameState) public onlyGameContract() {
-        GameState prevState = s_gamesState[msg.sender];
         s_gamesState[msg.sender] = GameState(_gameState);
         if (_gameState == 2) {
             emit GameStart(msg.sender);
