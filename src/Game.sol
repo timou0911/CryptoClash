@@ -83,7 +83,6 @@ contract Game {
 
     /** Events */
     event GameJoined(address player);
-    event GameStart();
     event SendNews(string[] news);//each player hold a index
     event SendEmail(string[] events);
     event SendMsg(string[] suggention);
