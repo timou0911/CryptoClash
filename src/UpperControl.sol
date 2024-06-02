@@ -65,10 +65,10 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
     bytes32 public donId;
 
     /** Events */
-    event GameCreated(address indexed gameAddress);
-    event StateChange(GameState indexed prev, GameState indexed curr);
-    event TimerStarted(address indexed gameAddress, uint256 indexed startTime);
+    event GameCreated(address indexed gameAddr);
+    event GameStart(address indexed gameAddr);
     event GameFinished(address indexed gameAddr);
+    event TimerStarted(address indexed gameAddr, uint256 indexed startTime);
     event VRF_RequestSent(uint256 indexed requestId, uint32 indexed s_numWords);
     event VRF_RequestFulfilled(uint256 indexed requestId, uint256[] indexed randomWords);
     event AI_RequestSent(bytes32 requestId);
@@ -170,8 +170,6 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
     function fulfillRandomWords( uint256 _requestId, uint256[] memory _randomWords) internal override {
         address gameAddress = s_VRF_requestIdToGameAddress[_requestId];
         require(gameAddress != address(0), "Invalid request ID");
-
-        bool received = Game(gameAddress).decideRandomEvent(_randomWords[0]);
         
         emit VRF_RequestFulfilled(_requestId, _randomWords);
     }
@@ -209,7 +207,12 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
     function setGameState(uint8 _gameState) public onlyGameContract() {
         GameState prevState = s_gamesState[msg.sender];
         s_gamesState[msg.sender] = GameState(_gameState);
-        emit StateChange(prevState, GameState(_gameState));
+        if (_gameState == 2) {
+            emit GameStart(msg.sender);
+            
+        } else if (_gameState == 3) {
+            emit GameFinished(msg.sender);
+        }
     }
 
     function setTimer(uint256 _startTime) public onlyGameContract() {

@@ -12,7 +12,7 @@ interface IUpperControl {
 /**
  * @title Game logic
  * @author Sean Yu, Hunter Lee, Tim Ou 
- * @notice XXXXX
+ * @notice The whole game flow is executed in this contract, and receive data from UpperControl
  * @dev XXXXX
  */
 
