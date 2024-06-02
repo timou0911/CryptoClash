@@ -1,7 +1,8 @@
-![Hackathon Logo]()
+![LOGO]()
 
-# <p align="center"> Project Name </p>
-brief and eye-catching description
+
+# <p align="center"> CryptoClash </p>
+<p align="center"> Strategic Battles for Market Dominance </p>
 
 Table of Contents
 ------------------
