@@ -161,7 +161,7 @@ async function setGame() {
                 let player = await game.getPlayer(i);
                 let playerid = "player" + (i + 1);
                 let tokenid = "token" + (i + 1);
-                document.getElementById(playerid).innerHTML = player.substring(0, 6) + "...Balance";
+                document.getElementById(playerid).innerHTML = player.substring(0, 6) + "... Balance";
                 document.getElementById(tokenid).innerHTML = "Token " + player.substring(0, 6);
                 players.push(player);
             }
