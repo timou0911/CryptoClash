@@ -201,7 +201,7 @@ contract UpperControl is VRFConsumerBaseV2, FunctionsClient, ConfirmedOwner {
 
     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         address game = s_AI_requestIdToGameAddress[requestId];
-        Game(game).fuilfillRandom(uint256(reponse));
+        Game(game).fuilfillRandom( uint256(bytes32(response)));
         emit AI_RequestFulfilled(requestId, response, err);
     }
 
