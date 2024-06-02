@@ -3,13 +3,14 @@ import upperControlMetadata from "../../out/UpperControl.sol/UpperControl.json" 
 import gameMetadata from "../../out/Game.sol/Game.json" with { type: 'json' };
 
 const upperControlABI = upperControlMetadata.abi;
-const upperControlAddr = "0x5CC5334CE401cA3731Fecb5b2e7738BB8f967591";
+const upperControlAddr = "0xAa6C08849Da3A9Ca69f52558525A8C443B561a45";
 const gameABI = gameMetadata.abi;
 const PARTICIPANT_FEE = "0.01";
 
 const connectButton = document.getElementById("connectButton");
 const createGameButton = document.getElementById("createGameButton");
 const enterGameButton = document.getElementById("enterGameButton");
+const setGameButton = document.getElementById("setGameButton");
 const choiceButton = document.getElementById("choiceButton");
 const listTokenButton = document.getElementById("listTokenButton");
 const unlistTokenButton = document.getElementById("unlistTokenButton");
@@ -18,6 +19,7 @@ const buyTokenButton = document.getElementById("buyTokenButton");
 connectButton.onclick = connect;
 createGameButton.onclick = createGame;
 enterGameButton.onclick = enterGame;
+setGameButton.onclick = setGame;
 choiceButton.onclick = setPlayerResponse;
 listTokenButton.onclick = listToken;
 unlistTokenButton.onclick = unlistToken;
@@ -77,7 +79,7 @@ async function createGame() {
 
             const block = await provider.getBlockNumber();
             const event = await upperControl.queryFilter("GameCreated", block - 1, block);
-            gameAddress = event[0].args.gameAddress;
+            gameAddress = event[0].args.gameAddr;
             const game = new ethers.Contract(gameAddress, gameABI, signer);
             let player = await game.getPlayer(0);
             players.push(player);
@@ -131,6 +133,42 @@ async function enterGame() {
             }
             
             console.log("-- Game Entered with Player Address: ", player);
+            updateData();
+            setInterval(updateData, 10000);
+        } catch (error) {
+            console.log(error);
+            console.log("Game Entering Failed");
+        }
+    } else {
+        createGameButton.innerHTML = "Please install MetaMask";
+    }
+}
+
+async function setGame() {
+    const gameAddressToSet = document.getElementById("setGame").value;
+    gameAddress = gameAddressToSet;
+    console.log("Setting Game Address... ", gameAddressToSet);
+    
+    if (typeof window.ethereum !== "undefined") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const game = new ethers.Contract(gameAddressToSet, gameABI, signer);
+
+        try {
+            players = [];
+            for (let i = 0; i < 3; ++i) {
+                let player = await game.getPlayer(i);
+                let playerid = "player" + (i + 1);
+                let tokenid = "token" + (i + 1);
+                document.getElementById(playerid).innerHTML = player.substring(0, 6) + "...Balance";
+                document.getElementById(tokenid).innerHTML = "Token " + player.substring(0, 6);
+                players.push(player);
+            }
+            
+            console.log("-- Game Set: ");
+            updateData();
+            setInterval(updateData, 10000);
         } catch (error) {
             console.log(error);
             console.log("Game Entering Failed");
@@ -266,6 +304,7 @@ async function updateData() {
         const game = new ethers.Contract(gameAddress, gameABI, signer);
 
         try {
+            console.log("Player length", players.length);
             for (let i = 0; i < players.length; ++i) {
                 let price = await game.getTokenPrice(i);
                 tokenPrice[i] = price;
